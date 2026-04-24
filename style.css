@@ -785,6 +785,66 @@ h1 {
   font-family: var(--font-mono);
 }
 
+/* ── Session identification fields ────────────────────── */
+.modal-session-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-field--sensor {
+  grid-column: 1 / -1;
+}
+
+.modal-session-fields .modal-field input[type="text"] {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  padding: 7px 11px;
+  border-radius: var(--r-sm);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.modal-session-fields .modal-field input[type="text"]:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px var(--cyan-dim);
+}
+
+.modal-session-fields .modal-field input[type="text"][readonly] {
+  cursor: default;
+  color: var(--text-3);
+  border-style: dashed;
+}
+
+.modal-session-fields .modal-field input[type="text"][readonly].sensor-connected {
+  color: var(--green);
+  border-color: rgba(52, 211, 153, 0.35);
+  border-style: solid;
+}
+
+.modal-session-fields .modal-field input[type="text"][readonly]:focus {
+  border-color: inherit;
+  box-shadow: none;
+}
+
+.modal-session-fields .modal-field input[type="text"]:invalid.touched {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px var(--red-dim);
+}
+
+.required-mark {
+  color: var(--red);
+  font-size: 11px;
+  margin-left: 2px;
+}
+
 /* ── Phase rows ─────────────────────────────────────────────── */
 .modal-section-label {
   display: block;

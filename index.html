@@ -247,6 +247,20 @@
           <button class="modal-close" id="modal-close" aria-label="Fechar modal">&#x2715;</button>
         </header>
         <div class="modal-body">
+          <div class="modal-session-fields">
+            <div class="modal-field">
+              <label for="proto-voluntario">Voluntário <span class="required-mark">*</span></label>
+              <input type="text" id="proto-voluntario" placeholder="Nome do voluntário" required autocomplete="off" />
+            </div>
+            <div class="modal-field">
+              <label for="proto-responsavel">Responsável <span class="required-mark">*</span></label>
+              <input type="text" id="proto-responsavel" placeholder="Nome do responsável" required autocomplete="off" />
+            </div>
+            <div class="modal-field modal-field--sensor">
+              <label for="proto-sensor">Nome do Sensor</label>
+              <input type="text" id="proto-sensor" value="Sensor não conectado" readonly tabindex="-1" />
+            </div>
+          </div>
           <div class="modal-field">
             <label for="proto-bpm">Incursões por Minuto</label>
             <div class="input-row">

@@ -103,6 +103,9 @@ const elBtnProtocol      = document.getElementById('btn-protocol');
 const elModalProtocol    = document.getElementById('modal-protocol');
 const elModalClose       = document.getElementById('modal-close');
 const elBtnStartProtocol = document.getElementById('btn-start-protocol');
+const elProtoVoluntario  = document.getElementById('proto-voluntario');
+const elProtoResponsavel = document.getElementById('proto-responsavel');
+const elProtoSensor      = document.getElementById('proto-sensor');
 const elProtoBPM         = document.getElementById('proto-bpm');
 const elProtoBaseline    = document.getElementById('proto-baseline');
 const elProtoGuide1      = document.getElementById('proto-guide1');
@@ -747,6 +750,8 @@ function setConnectedState(deviceName) {
   elSubtitle.textContent = (deviceName || 'Coospo HW9') + ' \u00b7 PPG Óptico';
   elStatusDot.classList.add('live');
   elStatusDot.title = 'Dispositivo conectado';
+  elProtoSensor.value = deviceName || 'Coospo HW9';
+  elProtoSensor.classList.add('sensor-connected');
   console.info('[BLE] Conectado:', deviceName);
 }
 
@@ -760,6 +765,8 @@ function setDisconnectedState() {
   elSubtitle.textContent = 'Coospo HW9 \u00b7 PPG Óptico';
   elStatusDot.classList.remove('live', 'beat');
   elStatusDot.title = 'Aguardando conexão';
+  elProtoSensor.value = 'Sensor não conectado';
+  elProtoSensor.classList.remove('sensor-connected');
   // Stop audio protocol and session timer
   AudioProtocol.stop();
   protocolUIReset();
@@ -1283,6 +1290,11 @@ function buildExportJSON() {
   const now = new Date();
 
   return {
+    sessao: {
+      voluntario:  elProtoVoluntario.value.trim(),
+      responsavel: elProtoResponsavel.value.trim(),
+      sensor:      elProtoSensor.value,
+    },
     config: {
       exportado_em:        now.toISOString(),
       janela_batimentos:    windowBeats,
@@ -1530,6 +1542,16 @@ function init() {
     if (e.target === elModalProtocol) elModalProtocol.classList.add('hidden');
   });
   elBtnStartProtocol.addEventListener('click', () => {
+    // Validate required session fields
+    const voluntario  = elProtoVoluntario.value.trim();
+    const responsavel = elProtoResponsavel.value.trim();
+    elProtoVoluntario.classList.add('touched');
+    elProtoResponsavel.classList.add('touched');
+    if (!voluntario || !responsavel) {
+      if (!voluntario) elProtoVoluntario.focus();
+      else             elProtoResponsavel.focus();
+      return;
+    }
     if (!isConnected) {
       const proceed = confirm(
         'O dispositivo Bluetooth não está conectado. Deseja iniciar o protocolo sonoro assim mesmo?'
