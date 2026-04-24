@@ -1,6 +1,6 @@
 # HRV Monitor — Coospo HW9
 
-Dashboard de monitoramento de HRV em tempo real via Web Bluetooth, com protocolo clínico de reatividade autonômica e feedback sonoro guiado.
+Dashboard de monitoramento de HRV em tempo real via sensor Web Bluetooth, com protocolo clínico de reatividade autonômica e feedback sonoro guiado.
 
 ---
 
