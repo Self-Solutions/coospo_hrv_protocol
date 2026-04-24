@@ -13,7 +13,8 @@
 'use strict';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const METRICS_MS   = 3_000;    // metrics refresh period
+// ─── Constants ───────────────────────────────────────────────────────────────────────────
+let   METRICS_MS   = 3_000;    // metrics refresh period (user-adjustable 1–5 s)
 const SQI_MS       = 30_000;   // SQI refresh period
 const CHART_POINTS = 1200;     // max RMSSD history kept (~1 h at 3 s/pt)
 
@@ -63,6 +64,7 @@ let sqiCountdown = SQI_MS / 1000;   // seconds remaining
 let firstBeatTs     = null;   // epoch ms of first beat in current session
 let sessionStart    = null;   // epoch ms when BLE connected
 let sessionInterval = null;   // stopwatch setInterval handle
+let _metricsTimer   = null;   // metrics setInterval handle (restartable)
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
 const elHR          = document.getElementById('metric-hr');
@@ -84,6 +86,8 @@ const elRRChartMeta      = document.getElementById('rr-chart-meta');
 const elRRChartPH        = document.getElementById('rr-chart-placeholder');
 const elAlterarBtn       = document.getElementById('btn-alterar');
 const elExportBtn        = document.getElementById('btn-export');
+const elIntervalInput    = document.getElementById('metrics-interval');
+const elIntervalDisplay  = document.getElementById('metrics-interval-display');
 const elConnectBtn       = document.getElementById('btn-connect');
 const elConnectLabel = document.getElementById('btn-connect-label');
 const elBadgeMode   = document.getElementById('badge-mode');
@@ -527,6 +531,7 @@ function enterEditMode() {
   elWindowInput.readOnly = false;
   elMaxAgeInput.readOnly = false;
   elFilterInput.readOnly = false;
+  elIntervalInput.readOnly = false;
   elAlterarBtn.textContent = 'Salvar';
   elAlterarBtn.classList.add('editing');
   elWindowInput.focus();
@@ -561,10 +566,25 @@ function saveConfig() {
     elFilterInput.value = Math.round(anomalyThreshold * 100);
   }
 
+  // Validate metrics interval
+  const iv = parseInt(elIntervalInput.value, 10);
+  if (!isNaN(iv) && iv >= 1 && iv <= 5) {
+    const newMs = iv * 1000;
+    if (newMs !== METRICS_MS) {
+      METRICS_MS = newMs;
+      clearInterval(_metricsTimer);
+      _metricsTimer = setInterval(updateMetrics, METRICS_MS);
+    }
+    if (elIntervalDisplay) elIntervalDisplay.textContent = iv;
+  } else {
+    elIntervalInput.value = METRICS_MS / 1000;
+  }
+
   configEditing = false;
   elWindowInput.readOnly = true;
   elMaxAgeInput.readOnly = true;
   elFilterInput.readOnly = true;
+  elIntervalInput.readOnly = true;
   elAlterarBtn.textContent = 'Alterar';
   elAlterarBtn.classList.remove('editing');
 }
@@ -581,10 +601,12 @@ document.addEventListener('keydown', e => {
     elWindowInput.value = windowBeats;
     elMaxAgeInput.value = windowMaxAgeMs / 1000;
     elFilterInput.value = Math.round(anomalyThreshold * 100);
+    elIntervalInput.value = METRICS_MS / 1000;
     configEditing = false;
     elWindowInput.readOnly = true;
     elMaxAgeInput.readOnly = true;
     elFilterInput.readOnly = true;
+    elIntervalInput.readOnly = true;
     elAlterarBtn.textContent = 'Alterar';
     elAlterarBtn.classList.remove('editing');
   }
@@ -1522,8 +1544,8 @@ function startRecordingSession(config) {
 }
 
 function init() {
-  // Metrics timer — every 3 s
-  setInterval(updateMetrics, METRICS_MS);
+  // Metrics timer — starts at configured interval, can be changed by user
+  _metricsTimer = setInterval(updateMetrics, METRICS_MS);
 
   // SQI timer — every 30 s
   setInterval(updateSQI, SQI_MS);

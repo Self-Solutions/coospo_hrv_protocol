@@ -12,16 +12,17 @@
     <!-- ── Header ────────────────────────────────────────────── -->
     <header class="header">
       <div class="header-left">
+        <img src="logo.webp" alt="Self Solutions" class="header-logo" />
         <span class="status-dot" id="status-dot" title="Aguardando conexão"></span>
         <div>
-          <h1>HRV Monitor</h1>
+          <h1>HRV Monitor - SELF SOLUTIONS</h1>
           <span class="subtitle">Coospo HW9 &middot; PPG Óptico</span>
         </div>
       </div>
       <div class="header-right">
         <button class="btn-protocol" id="btn-protocol" aria-label="Abrir configuração do protocolo sonoro">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
-          Protocolo Sonoro
+          <span class="btn-label">Protocolo Sonoro</span>
         </button>
         <button class="btn-connect" id="btn-connect" aria-label="Conectar dispositivo Bluetooth">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6.5 6.5 17.5 17.5 12 23 12 1 17.5 6.5 6.5 17.5"/></svg>
@@ -59,8 +60,13 @@
             <span class="unit">%</span>
           </div>
         </div>
-        <div class="config-stats">
-          <span id="window-beat-count">0 batimentos na janela</span>
+        <div class="config-divider"></div>
+        <div class="config-item">
+          <label for="metrics-interval">Intervalo de Cálculo</label>
+          <div class="input-row">
+            <input type="number" id="metrics-interval" value="3" min="1" max="5" readonly />
+            <span class="unit">s</span>
+          </div>
         </div>
         <div class="config-actions">
           <button class="btn-export" id="btn-export" title="Exportar registros como JSON">
@@ -68,6 +74,9 @@
             Exportar CSV
           </button>
           <button class="btn-alterar" id="btn-alterar">Alterar</button>
+        </div>
+        <div class="config-stats">
+          <span id="window-beat-count">0 batimentos na janela</span>
         </div>
       </section>
 
@@ -149,7 +158,7 @@
             <span class="card-value" id="metric-hr">--</span>
             <span class="card-unit">bpm</span>
           </div>
-          <span class="card-hint">atualiza a cada 3 s</span>
+          <span class="card-hint">atualiza a cada <span id="metrics-interval-display">3</span> s</span>
         </article>
 
         <article class="card" id="card-rmssd">
@@ -237,6 +246,8 @@
     <!-- ── Footer ────────────────────────────────────────────── -->
     <footer class="footer">
       HRV Dashboard &mdash; Coospo HW9 &mdash; tempo real via PPG óptico
+      <br />
+      <span class="footer-copy">&copy; 2026 Self Solutions &mdash; Todos os direitos reservados</span>
     </footer>
 
     <!-- ── Protocol Modal ────────────────────────────────────── -->

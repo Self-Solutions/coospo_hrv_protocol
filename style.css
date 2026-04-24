@@ -9,7 +9,7 @@
 
 :root {
   /* backgrounds */
-  --bg:          #09090b;
+  --bg:          #0f1319;
   --surface:     #111113;
   --surface-hi:  #18181b;
 
@@ -81,6 +81,14 @@ html, body {
   justify-content: space-between;
   padding: 28px 0 22px;
   border-bottom: 1px solid var(--border);
+}
+
+.header-logo {
+  height: 36px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .header-left {
@@ -322,6 +330,7 @@ h1 {
   font-family: var(--font-mono);
   color: var(--text-3);
   white-space: nowrap;
+  width: 100%;
 }
 
 .config-actions {
@@ -483,6 +492,7 @@ h1 {
   margin-top: 8px;
   font-family: var(--font-mono);
 }
+
 
 /* ── Stress bar ─────────────────────────────────── */
 .stress-track {
@@ -664,6 +674,12 @@ h1 {
   color: var(--text-3);
   text-align: center;
   letter-spacing: 0.3px;
+}
+
+.footer-copy {
+  font-size: 10px;
+  color: var(--text-3);
+  opacity: 0.6;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -1049,4 +1065,206 @@ h1 {
 /* ── Done (past) state ──────────────────────────────────────── */
 .protocol-phase.proto-done {
   opacity: 0.38;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Responsive — Mobile & Tablet
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── ≤ 700px : header wraps, panels compact ───────────────────────────────────── */
+@media (max-width: 700px) {
+
+  .app {
+    padding: 0 16px;
+  }
+
+  /* Header wraps onto 2 rows */
+  .header {
+    flex-wrap: wrap;
+    padding: 16px 0 14px;
+    gap: 10px;
+  }
+
+  h1 {
+    font-size: 16px;
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  /* Protocol button: icon-only, hide text label */
+  .btn-protocol .btn-label {
+    display: none;
+  }
+
+  /* Hide redundant badge (status-dot + btn colour already convey state) */
+  .badge-mode {
+    display: none;
+  }
+
+  /* Main */
+  .main {
+    padding: 18px 0 24px;
+    gap: 14px;
+  }
+
+  /* Config panel */
+  .config-panel {
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .config-divider {
+    display: none;
+  }
+
+  .config-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  /* Protocol progress bar */
+  .protocol-bar {
+    height: 40px;
+  }
+
+  .protocol-phase-content {
+    padding: 0 6px;
+  }
+
+  .protocol-phase-label {
+    font-size: 8px;
+    letter-spacing: 0.5px;
+  }
+
+  .protocol-phase-time {
+    font-size: 11px;
+  }
+
+  /* Charts */
+  .chart-section {
+    padding: 14px 16px 12px;
+    gap: 8px;
+  }
+
+  .chart-wrap {
+    height: 180px;
+  }
+
+  .window-timeline-wrap {
+    height: 72px;
+  }
+
+  /* Modal — allow body to scroll on smaller viewports */
+  .modal {
+    max-height: calc(100dvh - 32px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+    padding: 16px 20px;
+    gap: 16px;
+  }
+
+  .modal-header {
+    padding: 16px 20px 14px;
+  }
+
+  .modal-footer {
+    padding: 14px 20px 16px;
+  }
+
+  /* Session fields: single column */
+  .modal-session-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-field--sensor {
+    grid-column: 1;
+  }
+
+  /* Metrics cards: single column */
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .card {
+    padding: 16px 16px 12px;
+  }
+
+  .card-value {
+    font-size: 38px;
+  }
+}
+
+/* ── ≤ 480px : full single-column phone layout ───────────────────────────────── */
+@media (max-width: 480px) {
+
+  .app {
+    padding: 0 12px;
+  }
+
+  .header {
+    padding: 12px 0 12px;
+  }
+
+  h1 {
+    font-size: 15px;
+  }
+
+  /* Single-column metric cards */
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* Protocol bar: coloured stripes only, no text */
+  .protocol-bar {
+    height: 24px;
+  }
+
+  .protocol-phase-label,
+  .protocol-phase-time {
+    display: none;
+  }
+
+  /* Charts slightly shorter to save vertical space */
+  .chart-wrap {
+    height: 160px;
+  }
+
+  .window-timeline-wrap {
+    height: 60px;
+  }
+
+  .card-value {
+    font-size: 34px;
+  }
+
+  .card {
+    padding: 14px 14px 10px;
+  }
+
+  /* Snap-to-live button: smaller */
+  .btn-snap-live {
+    font-size: 9px;
+    padding: 3px 8px;
+    bottom: 22px;
+    right: 14px;
+  }
+
+  /* Config stats: wrap to fit */
+  .config-stats {
+    font-size: 10px;
+    white-space: normal;
+  }
 }
