@@ -58,56 +58,44 @@ module.exports = async function handler(req, res) {
       )
     `;
 
-    const { sessionId } = await sql.transaction(async (tx) => {
-      const { rows: [{ id: sessionId }] } = await tx`
+    const bTs     = beats.rows.map(r => r[0]);
+    const bRr     = beats.rows.map(r => r[1]);
+    const bValid  = beats.rows.map(r => r[2]);
+    const bDevice = beats.rows.map(r => r[3] ?? false);
+
+    const mTs     = metricas.rows.map(r => r[0]);
+    const mHr     = metricas.rows.map(r => r[1]);
+    const mRmssd  = metricas.rows.map(r => r[2]);
+    const mStress = metricas.rows.map(r => r[3]);
+
+    const { rows: [{ id: sessionId }] } = await sql`
+      WITH new_session AS (
         INSERT INTO sessions (
           voluntario, responsavel, sensor, exportado_em,
           janela_batimentos, janela_maxage_s, filtro_anomalias_pct, intervalo_calculo_s
         ) VALUES (
-          ${sessao.voluntario},
-          ${sessao.responsavel},
-          ${sessao.sensor},
-          ${config.exportado_em},
-          ${config.janela_batimentos},
-          ${config.janela_maxage_s},
-          ${config.filtro_anomalias_pct},
-          ${config.intervalo_calculo_s ?? 3}
+          ${sessao.voluntario}, ${sessao.responsavel}, ${sessao.sensor}, ${config.exportado_em},
+          ${config.janela_batimentos}, ${config.janela_maxage_s},
+          ${config.filtro_anomalias_pct}, ${config.intervalo_calculo_s ?? 3}
         )
         RETURNING id
-      `;
-
-      const bTs     = beats.rows.map(r => r[0]);
-      const bRr     = beats.rows.map(r => r[1]);
-      const bValid  = beats.rows.map(r => r[2]);
-      const bDevice = beats.rows.map(r => r[3] ?? false);
-
-      await tx`
+      ),
+      new_beats AS (
         INSERT INTO beats (session_id, timestamp_ms, rr_ms, valid, device_filtered)
-        SELECT ${sessionId}, * FROM unnest(
-          ${bTs}::bigint[],
-          ${bRr}::int[],
-          ${bValid}::boolean[],
-          ${bDevice}::boolean[]
-        )
-      `;
-
-      const mTs     = metricas.rows.map(r => r[0]);
-      const mHr     = metricas.rows.map(r => r[1]);
-      const mRmssd  = metricas.rows.map(r => r[2]);
-      const mStress = metricas.rows.map(r => r[3]);
-
-      await tx`
+        SELECT s.id, b.ts, b.rr, b.valid, b.df
+        FROM new_session s,
+        unnest(${bTs}::bigint[], ${bRr}::int[], ${bValid}::boolean[], ${bDevice}::boolean[])
+          AS b(ts, rr, valid, df)
+      ),
+      new_metricas AS (
         INSERT INTO metricas (session_id, timestamp_ms, hr_bpm, rmssd_ms, stress)
-        SELECT ${sessionId}, * FROM unnest(
-          ${mTs}::bigint[],
-          ${mHr}::int[],
-          ${mRmssd}::int[],
-          ${mStress}::int[]
-        )
-      `;
-
-      return { sessionId };
-    });
+        SELECT s.id, m.ts, m.hr, m.rmssd, m.stress
+        FROM new_session s,
+        unnest(${mTs}::bigint[], ${mHr}::int[], ${mRmssd}::int[], ${mStress}::int[])
+          AS m(ts, hr, rmssd, stress)
+      )
+      SELECT id FROM new_session
+    `;
 
     console.log('[save-session] dado salvo no banco. session_id:', sessionId);
     return res.status(200).json({ ok: true, session_id: sessionId });
