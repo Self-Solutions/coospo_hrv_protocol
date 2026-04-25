@@ -1322,10 +1322,11 @@ function buildExportJSON() {
       janela_batimentos:    windowBeats,
       janela_maxage_s:      windowMaxAgeMs / 1000,
       filtro_anomalias_pct: Math.round(anomalyThreshold * 100),
+      intervalo_calculo_s:  METRICS_MS / 1000,
     },
     beats: {
-      headers: ['timestamp_ms', 'rr_ms', 'valid'],
-      rows: beats.map(b => [b.ts, b.rr, b.valid]),
+      headers: ['timestamp_ms', 'rr_ms', 'valid', 'device_filtered'],
+      rows: beats.map(b => [b.ts, b.rr, b.valid, b.deviceFiltered ?? false]),
     },
     metricas: {
       headers: ['timestamp_ms', 'hr_bpm', 'rmssd_ms', 'stress'],
@@ -1349,7 +1350,8 @@ async function exportData() {
     String(now.getSeconds()).padStart(2, '0');
 
   const fileName = `hrv_${stamp}.json`;
-  const content  = JSON.stringify(buildExportJSON(), null, 2);
+  const data     = buildExportJSON();
+  const content  = JSON.stringify(data, null, 2);
   const blob     = new Blob([content], { type: 'application/json;charset=utf-8;' });
 
   if (window.showSaveFilePicker) {
@@ -1375,6 +1377,24 @@ async function exportData() {
     a.download = fileName;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  saveSessionToDatabase(data);
+}
+
+async function saveSessionToDatabase(data) {
+  console.log('[Export] processando envio para o banco...');
+  try {
+    const res = await fetch('/api/save-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error ?? res.statusText);
+    console.log('[Export] dado salvo no banco. session_id:', json.session_id);
+  } catch (err) {
+    console.error('[Export] erro no banco:', err.message);
   }
 }
 
@@ -1632,5 +1652,120 @@ function init() {
 
   console.info('[HRV Monitor] Pronto — aguardando conexão Bluetooth (Coospo HW9)');
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  LIST SESSIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const elModalListSessions      = document.getElementById('modal-list-sessions');
+const elBtnListSessions        = document.getElementById('btn-list-sessions');
+const elModalListSessionsClose = document.getElementById('modal-list-sessions-close');
+const elListSessionsContent    = document.getElementById('list-sessions-content');
+
+elBtnListSessions.addEventListener('click', async () => {
+  elModalListSessions.classList.remove('hidden');
+  elListSessionsContent.innerHTML = '<span style="color:#71717a;">Carregando…</span>';
+
+  try {
+    const res  = await fetch('/api/list-sessions');
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error ?? res.statusText);
+
+    if (json.sessions.length === 0) {
+      elListSessionsContent.innerHTML = '<span style="color:#71717a;">Nenhuma sessão salva.</span>';
+      return;
+    }
+
+    const rows = json.sessions.map(s => {
+      const date = new Date(s.exportado_em).toLocaleString('pt-BR');
+      return `<tr>
+        <td style="padding:6px 10px;color:#a1a1aa;">#${s.id}</td>
+        <td style="padding:6px 10px;">${s.voluntario}</td>
+        <td style="padding:6px 10px;">${s.responsavel}</td>
+        <td style="padding:6px 10px;color:#71717a;">${s.sensor}</td>
+        <td style="padding:6px 10px;color:#71717a;">${date}</td>
+      </tr>`;
+    }).join('');
+
+    elListSessionsContent.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:.05em;">
+            <th style="padding:4px 10px;text-align:left;">ID</th>
+            <th style="padding:4px 10px;text-align:left;">Voluntário</th>
+            <th style="padding:4px 10px;text-align:left;">Responsável</th>
+            <th style="padding:4px 10px;text-align:left;">Sensor</th>
+            <th style="padding:4px 10px;text-align:left;">Exportado em</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  } catch (err) {
+    elListSessionsContent.innerHTML = `<span style="color:#f87171;">Erro: ${err.message}</span>`;
+  }
+});
+
+elModalListSessionsClose.addEventListener('click', () => {
+  elModalListSessions.classList.add('hidden');
+});
+
+elModalListSessions.addEventListener('click', e => {
+  if (e.target === elModalListSessions) elModalListSessions.classList.add('hidden');
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  HARD INSERT TEST
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const elModalHardInsert      = document.getElementById('modal-hard-insert');
+const elBtnHardInsert        = document.getElementById('btn-hard-insert');
+const elModalHardInsertClose = document.getElementById('modal-hard-insert-close');
+const elHardInsertJson       = document.getElementById('hard-insert-json');
+const elBtnHardInsertSend    = document.getElementById('btn-hard-insert-send');
+const elHardInsertStatus     = document.getElementById('hard-insert-status');
+
+elBtnHardInsert.addEventListener('click', () => {
+  elModalHardInsert.classList.remove('hidden');
+});
+
+elModalHardInsertClose.addEventListener('click', () => {
+  elModalHardInsert.classList.add('hidden');
+});
+
+elModalHardInsert.addEventListener('click', e => {
+  if (e.target === elModalHardInsert) elModalHardInsert.classList.add('hidden');
+});
+
+elBtnHardInsertSend.addEventListener('click', async () => {
+  let data;
+  try {
+    data = JSON.parse(elHardInsertJson.value);
+  } catch {
+    elHardInsertStatus.style.color = '#f87171';
+    elHardInsertStatus.textContent = 'JSON inválido.';
+    return;
+  }
+
+  elBtnHardInsertSend.disabled = true;
+  elHardInsertStatus.style.color = '#71717a';
+  elHardInsertStatus.textContent = 'Enviando…';
+
+  try {
+    const res  = await fetch('/api/save-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error ?? res.statusText);
+    elHardInsertStatus.style.color = '#34d399';
+    elHardInsertStatus.textContent = 'Salvo! session_id: ' + json.session_id;
+  } catch (err) {
+    elHardInsertStatus.style.color = '#f87171';
+    elHardInsertStatus.textContent = 'Erro: ' + err.message;
+  } finally {
+    elBtnHardInsertSend.disabled = false;
+  }
+});
 
 init();

@@ -20,6 +20,12 @@
         </div>
       </div>
       <div class="header-right">
+        <button class="btn-protocol" id="btn-hard-insert" aria-label="Hard insert test">
+          <span class="btn-label">Hard_insert_Test</span>
+        </button>
+        <button class="btn-protocol" id="btn-list-sessions" aria-label="Ver sessões">
+          <span class="btn-label">Ver Sessões</span>
+        </button>
         <button class="btn-protocol" id="btn-protocol" aria-label="Abrir configuração do protocolo sonoro">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
           <span class="btn-label">Protocolo Sonoro</span>
@@ -249,6 +255,38 @@
       <br />
       <span class="footer-copy">&copy; 2026 Self Solutions &mdash; Todos os direitos reservados</span>
     </footer>
+
+    <!-- ── List Sessions Modal ──────────────────────────────── -->
+    <div class="modal-overlay hidden" id="modal-list-sessions" role="dialog" aria-modal="true">
+      <div class="modal" style="max-width:700px;width:95%;">
+        <header class="modal-header">
+          <h2>Sessões Salvas</h2>
+          <button class="modal-close" id="modal-list-sessions-close" aria-label="Fechar modal">&#x2715;</button>
+        </header>
+        <div class="modal-body">
+          <div id="list-sessions-content" style="font-size:13px;color:#e4e4e7;">
+            <span style="color:#71717a;">Carregando…</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Hard Insert Test Modal ───────────────────────────── -->
+    <div class="modal-overlay hidden" id="modal-hard-insert" role="dialog" aria-modal="true">
+      <div class="modal">
+        <header class="modal-header">
+          <h2>Hard_insert_Test</h2>
+          <button class="modal-close" id="modal-hard-insert-close" aria-label="Fechar modal">&#x2715;</button>
+        </header>
+        <div class="modal-body">
+          <textarea id="hard-insert-json" rows="16" style="width:100%;font-family:monospace;font-size:12px;background:#18181b;color:#e4e4e7;border:1px solid #3f3f46;border-radius:6px;padding:10px;resize:vertical;" placeholder="Cole o JSON aqui..."></textarea>
+          <div style="margin-top:12px;display:flex;gap:10px;align-items:center;">
+            <button class="btn-start-protocol" id="btn-hard-insert-send">Enviar para o banco</button>
+            <span id="hard-insert-status" style="font-size:12px;color:#71717a;"></span>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ── Protocol Modal ────────────────────────────────────── -->
     <div class="modal-overlay hidden" id="modal-protocol" role="dialog" aria-modal="true" aria-labelledby="modal-protocol-title">
