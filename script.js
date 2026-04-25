@@ -1662,10 +1662,8 @@ const elBtnListSessions        = document.getElementById('btn-list-sessions');
 const elModalListSessionsClose = document.getElementById('modal-list-sessions-close');
 const elListSessionsContent    = document.getElementById('list-sessions-content');
 
-elBtnListSessions.addEventListener('click', async () => {
-  elModalListSessions.classList.remove('hidden');
+async function loadSessions() {
   elListSessionsContent.innerHTML = '<span style="color:#71717a;">Carregando…</span>';
-
   try {
     const res  = await fetch('/api/list-sessions');
     const json = await res.json();
@@ -1678,12 +1676,15 @@ elBtnListSessions.addEventListener('click', async () => {
 
     const rows = json.sessions.map(s => {
       const date = new Date(s.exportado_em).toLocaleString('pt-BR');
-      return `<tr>
+      return `<tr data-id="${s.id}">
         <td style="padding:6px 10px;color:#a1a1aa;">#${s.id}</td>
         <td style="padding:6px 10px;">${s.voluntario}</td>
         <td style="padding:6px 10px;">${s.responsavel}</td>
         <td style="padding:6px 10px;color:#71717a;">${s.sensor}</td>
         <td style="padding:6px 10px;color:#71717a;">${date}</td>
+        <td style="padding:6px 10px;text-align:center;">
+          <button data-delete-id="${s.id}" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:14px;line-height:1;padding:2px 6px;" title="Excluir sessão">&#x2715;</button>
+        </td>
       </tr>`;
     }).join('');
 
@@ -1696,13 +1697,37 @@ elBtnListSessions.addEventListener('click', async () => {
             <th style="padding:4px 10px;text-align:left;">Responsável</th>
             <th style="padding:4px 10px;text-align:left;">Sensor</th>
             <th style="padding:4px 10px;text-align:left;">Exportado em</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
       </table>`;
+
+    elListSessionsContent.addEventListener('click', async e => {
+      const btn = e.target.closest('[data-delete-id]');
+      if (!btn) return;
+      const id = btn.dataset.deleteId;
+      if (!confirm(`Excluir sessão #${id} e todos os seus dados?`)) return;
+      btn.disabled = true;
+      try {
+        const r = await fetch(`/api/delete-session?id=${id}`, { method: 'DELETE' });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error ?? r.statusText);
+        btn.closest('tr').remove();
+      } catch (err) {
+        alert('Erro ao excluir: ' + err.message);
+        btn.disabled = false;
+      }
+    }, { once: true });
+
   } catch (err) {
     elListSessionsContent.innerHTML = `<span style="color:#f87171;">Erro: ${err.message}</span>`;
   }
+}
+
+elBtnListSessions.addEventListener('click', () => {
+  elModalListSessions.classList.remove('hidden');
+  loadSessions();
 });
 
 elModalListSessionsClose.addEventListener('click', () => {
