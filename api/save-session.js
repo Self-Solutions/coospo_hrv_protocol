@@ -68,7 +68,7 @@ module.exports = async function handler(req, res) {
     const mRmssd  = metricas.rows.map(r => r[2]);
     const mStress = metricas.rows.map(r => r[3]);
 
-    const { rows: [{ id: sessionId }] } = await sql`
+    const [{ id: sessionId }] = await sql`
       WITH new_session AS (
         INSERT INTO sessions (
           voluntario, responsavel, sensor, exportado_em,
