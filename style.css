@@ -729,26 +729,26 @@ h1 {
 
 .session-chart-wrap {
   position: relative;
-  height: 160px;
+  height: 190px;
   background: #111113;
   border-radius: 6px;
   overflow: hidden;
 }
 
 .session-chart-wrap--sm {
-  height: 130px;
+  height: 155px;
 }
 
-/* Landscape mobile */
+/* Landscape mobile (short viewport) */
 @media (max-height: 500px) {
   .session-chart-wrap     { height: 110px; }
   .session-chart-wrap--sm { height: 90px;  }
 }
 
-/* Tablet portrait */
+/* Tablet / medium window */
 @media (min-width: 600px) and (max-width: 900px) {
-  .session-chart-wrap     { height: 180px; }
-  .session-chart-wrap--sm { height: 150px; }
+  .session-chart-wrap     { height: 200px; }
+  .session-chart-wrap--sm { height: 165px; }
 }
 
 .session-row:hover {
@@ -1249,11 +1249,8 @@ h1 {
 
   /* ── Session detail modal ── */
   #session-detail-info {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
     gap: 12px 16px;
-  }
-
-  #session-detail-info > div {
-    min-width: 100px !important;
   }
 }
 

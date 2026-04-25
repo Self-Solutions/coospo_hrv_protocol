@@ -1774,14 +1774,14 @@ function renderSessionLineChart(canvas, values, color, gradColorTop) {
   ctx.fillStyle = '#111113';
   ctx.fillRect(0, 0, W, H);
 
-  const PAD = { top: 10, right: 12, bottom: 20, left: 44 };
+  const PAD = { top: 10, right: 12, bottom: 20, left: 48 };
   const PW  = W - PAD.left - PAD.right;
   const PH  = H - PAD.top  - PAD.bottom;
   const n   = values.length;
 
   const minVal = Math.min(...values);
   const maxVal = Math.max(...values);
-  const pad    = (maxVal - minVal) * 0.12 || 5;
+  const pad    = (maxVal - minVal) * 0.15 || 8;
   const lo     = minVal - pad;
   const hi     = maxVal + pad;
   const range  = hi - lo;
@@ -1800,11 +1800,11 @@ function renderSessionLineChart(canvas, values, color, gradColorTop) {
     ctx.moveTo(PAD.left, y);
     ctx.lineTo(W - PAD.right, y);
     ctx.stroke();
-    ctx.fillStyle    = '#3f3f46';
-    ctx.font         = '9px SF Mono, Cascadia Code, monospace';
+    ctx.fillStyle    = '#71717a';
+    ctx.font         = '11px SF Mono, Cascadia Code, monospace';
     ctx.textAlign    = 'right';
     ctx.textBaseline = 'middle';
-    ctx.fillText(val.toFixed(0), PAD.left - 5, y);
+    ctx.fillText(val.toFixed(0), PAD.left - 6, y);
   }
   ctx.setLineDash([]);
 
@@ -1854,7 +1854,7 @@ function renderSessionRRChartStatic(canvas, beats) {
   ctx.fillStyle = '#111113';
   ctx.fillRect(0, 0, W, H);
 
-  const PAD = { top: 10, right: 12, bottom: 20, left: 44 };
+  const PAD = { top: 10, right: 12, bottom: 20, left: 48 };
   const PW  = W - PAD.left - PAD.right;
   const PH  = H - PAD.top  - PAD.bottom;
   const n   = beats.length;
@@ -1878,11 +1878,11 @@ function renderSessionRRChartStatic(canvas, beats) {
     ctx.moveTo(PAD.left, y);
     ctx.lineTo(W - PAD.right, y);
     ctx.stroke();
-    ctx.fillStyle    = '#3f3f46';
-    ctx.font         = '9px SF Mono, Cascadia Code, monospace';
+    ctx.fillStyle    = '#71717a';
+    ctx.font         = '11px SF Mono, Cascadia Code, monospace';
     ctx.textAlign    = 'right';
     ctx.textBaseline = 'middle';
-    ctx.fillText(val.toFixed(0), PAD.left - 5, y);
+    ctx.fillText(val.toFixed(0), PAD.left - 6, y);
   }
   ctx.setLineDash([]);
 
@@ -1915,6 +1915,15 @@ function renderSessionRRChartStatic(canvas, beats) {
 let _sessionBeats    = [];
 let _sessionMetricas = [];
 let _sessionChartObserver = null;
+
+function renderSessionChartsWhenReady(attempts = 0) {
+  const wrap = document.querySelector('.session-chart-wrap');
+  if (wrap && wrap.clientHeight > 0) {
+    renderSessionCharts();
+  } else if (attempts < 25) {
+    setTimeout(() => renderSessionChartsWhenReady(attempts + 1), 40);
+  }
+}
 
 function renderSessionCharts() {
   renderSessionLineChart(
@@ -1951,10 +1960,10 @@ async function openSessionDetail(id) {
     elSessionDetailTitle.textContent = `Sessão #${session.id} — ${session.voluntario}`;
 
     const item = (label, value) =>
-      `<div style="flex:1 1 120px;min-width:100px;max-width:200px;"><span style="color:#52525b;font-size:11px;text-transform:uppercase;letter-spacing:.04em;">${label}</span><br><span style="color:#e4e4e7;">${value}</span></div>`;
+      `<div><span style="display:block;color:#52525b;font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;">${label}</span><span style="color:#e4e4e7;font-size:13px;">${value}</span></div>`;
 
     elSessionDetailInfo.innerHTML = `
-      <div style="display:flex;flex-wrap:wrap;gap:12px 16px;padding:12px 0;border-bottom:1px solid #27272a;margin-bottom:16px;overflow:hidden;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px 20px;padding:14px 0;border-bottom:1px solid #27272a;margin-bottom:16px;">
         ${item('Responsável',       session.responsavel)}
         ${item('Sensor',            session.sensor)}
         ${item('Exportado em',      date)}
@@ -1967,15 +1976,15 @@ async function openSessionDetail(id) {
       </div>
     `;
 
-    // Aguarda o layout estabilizar antes de desenhar
-    setTimeout(renderSessionCharts, 80);
-
     // Redesenha automaticamente ao girar ou redimensionar
     if (_sessionChartObserver) _sessionChartObserver.disconnect();
     _sessionChartObserver = new ResizeObserver(() => renderSessionCharts());
     document.querySelectorAll('.session-chart-wrap').forEach(el => {
       _sessionChartObserver.observe(el);
     });
+
+    // Aguarda layout ter dimensões reais antes de desenhar (crucial no landscape)
+    renderSessionChartsWhenReady();
 
   } catch (err) {
     elSessionDetailTitle.textContent = 'Erro';
