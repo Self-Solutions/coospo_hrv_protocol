@@ -1661,6 +1661,10 @@ const elModalListSessions      = document.getElementById('modal-list-sessions');
 const elBtnListSessions        = document.getElementById('btn-list-sessions');
 const elModalListSessionsClose = document.getElementById('modal-list-sessions-close');
 const elListSessionsContent    = document.getElementById('list-sessions-content');
+const elModalSessionDetail     = document.getElementById('modal-session-detail');
+const elSessionDetailTitle     = document.getElementById('session-detail-title');
+const elSessionDetailClose     = document.getElementById('modal-session-detail-close');
+const elSessionDetailInfo      = document.getElementById('session-detail-info');
 
 async function loadSessions() {
   elListSessionsContent.innerHTML = '<span style="color:#71717a;">Carregando…</span>';
@@ -1676,7 +1680,7 @@ async function loadSessions() {
 
     const rows = json.sessions.map(s => {
       const date = new Date(s.exportado_em).toLocaleString('pt-BR');
-      return `<tr data-id="${s.id}">
+      return `<tr data-id="${s.id}" style="cursor:pointer;">
         <td style="padding:6px 10px;color:#a1a1aa;">#${s.id}</td>
         <td style="padding:6px 10px;">${s.voluntario}</td>
         <td style="padding:6px 10px;">${s.responsavel}</td>
@@ -1702,28 +1706,32 @@ async function loadSessions() {
         </thead>
         <tbody>${rows}</tbody>
       </table>`;
-
-    elListSessionsContent.addEventListener('click', async e => {
-      const btn = e.target.closest('[data-delete-id]');
-      if (!btn) return;
-      const id = btn.dataset.deleteId;
-      if (!confirm(`Excluir sessão #${id} e todos os seus dados?`)) return;
-      btn.disabled = true;
-      try {
-        const r = await fetch(`/api/delete-session?id=${id}`, { method: 'DELETE' });
-        const j = await r.json();
-        if (!r.ok) throw new Error(j.error ?? r.statusText);
-        btn.closest('tr').remove();
-      } catch (err) {
-        alert('Erro ao excluir: ' + err.message);
-        btn.disabled = false;
-      }
-    }, { once: true });
-
   } catch (err) {
     elListSessionsContent.innerHTML = `<span style="color:#f87171;">Erro: ${err.message}</span>`;
   }
 }
+
+// Único handler para delete e abertura de detalhe
+elListSessionsContent.addEventListener('click', async e => {
+  const deleteBtn = e.target.closest('[data-delete-id]');
+  if (deleteBtn) {
+    const id = deleteBtn.dataset.deleteId;
+    if (!confirm(`Excluir sessão #${id} e todos os seus dados?`)) return;
+    deleteBtn.disabled = true;
+    try {
+      const r = await fetch(`/api/delete-session?id=${id}`, { method: 'DELETE' });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error ?? r.statusText);
+      deleteBtn.closest('tr').remove();
+    } catch (err) {
+      alert('Erro ao excluir: ' + err.message);
+      deleteBtn.disabled = false;
+    }
+    return;
+  }
+  const row = e.target.closest('tr[data-id]');
+  if (row) openSessionDetail(row.dataset.id);
+});
 
 elBtnListSessions.addEventListener('click', () => {
   elModalListSessions.classList.remove('hidden');
@@ -1737,6 +1745,216 @@ elModalListSessionsClose.addEventListener('click', () => {
 elModalListSessions.addEventListener('click', e => {
   if (e.target === elModalListSessions) elModalListSessions.classList.add('hidden');
 });
+
+elSessionDetailClose.addEventListener('click', () => {
+  elModalSessionDetail.classList.add('hidden');
+});
+
+elModalSessionDetail.addEventListener('click', e => {
+  if (e.target === elModalSessionDetail) elModalSessionDetail.classList.add('hidden');
+});
+
+// ─── Session detail charts ────────────────────────────────────────────────────
+
+function renderSessionLineChart(canvas, values, color, gradColorTop) {
+  const dpr = window.devicePixelRatio || 1;
+  const container = canvas.parentElement;
+  const W = container.clientWidth;
+  const H = container.clientHeight;
+  if (W === 0 || H === 0 || values.length < 2) return;
+
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#111113';
+  ctx.fillRect(0, 0, W, H);
+
+  const PAD = { top: 10, right: 12, bottom: 20, left: 44 };
+  const PW  = W - PAD.left - PAD.right;
+  const PH  = H - PAD.top  - PAD.bottom;
+  const n   = values.length;
+
+  const minVal = Math.min(...values);
+  const maxVal = Math.max(...values);
+  const pad    = (maxVal - minVal) * 0.12 || 5;
+  const lo     = minVal - pad;
+  const hi     = maxVal + pad;
+  const range  = hi - lo;
+
+  const toX = i => PAD.left + (i / (n - 1)) * PW;
+  const toY = v => PAD.top  + PH - ((v - lo) / range) * PH;
+
+  // Grid
+  ctx.strokeStyle = '#1f1f23';
+  ctx.lineWidth   = 1;
+  ctx.setLineDash([3, 5]);
+  for (let i = 0; i <= 3; i++) {
+    const y   = PAD.top + (PH * i / 3);
+    const val = hi - (range * i / 3);
+    ctx.beginPath();
+    ctx.moveTo(PAD.left, y);
+    ctx.lineTo(W - PAD.right, y);
+    ctx.stroke();
+    ctx.fillStyle    = '#3f3f46';
+    ctx.font         = '9px SF Mono, Cascadia Code, monospace';
+    ctx.textAlign    = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(val.toFixed(0), PAD.left - 5, y);
+  }
+  ctx.setLineDash([]);
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + PH);
+  grad.addColorStop(0,   gradColorTop);
+  grad.addColorStop(1,   'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.moveTo(toX(0), toY(values[0]));
+  for (let i = 1; i < n; i++) ctx.lineTo(toX(i), toY(values[i]));
+  ctx.lineTo(toX(n - 1), PAD.top + PH);
+  ctx.lineTo(toX(0),     PAD.top + PH);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  ctx.moveTo(toX(0), toY(values[0]));
+  for (let i = 1; i < n; i++) ctx.lineTo(toX(i), toY(values[i]));
+  ctx.strokeStyle = color;
+  ctx.lineWidth   = 1.8;
+  ctx.lineJoin    = 'round';
+  ctx.stroke();
+
+  // Latest dot
+  ctx.beginPath();
+  ctx.arc(toX(n - 1), toY(values[n - 1]), 3.5, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+function renderSessionRRChartStatic(canvas, beats) {
+  const dpr = window.devicePixelRatio || 1;
+  const container = canvas.parentElement;
+  const W = container.clientWidth;
+  const H = container.clientHeight;
+  if (W === 0 || H === 0 || beats.length < 2) return;
+
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.fillStyle = '#111113';
+  ctx.fillRect(0, 0, W, H);
+
+  const PAD = { top: 10, right: 12, bottom: 20, left: 44 };
+  const PW  = W - PAD.left - PAD.right;
+  const PH  = H - PAD.top  - PAD.bottom;
+  const n   = beats.length;
+
+  const rrs    = beats.map(b => b.rr_ms);
+  const minVal = Math.min(...rrs) - 20;
+  const maxVal = Math.max(...rrs) + 20;
+  const range  = maxVal - minVal || 1;
+
+  const toX = i => PAD.left + (i / (n - 1)) * PW;
+  const toY = v => PAD.top  + PH - ((v - minVal) / range) * PH;
+
+  // Grid
+  ctx.strokeStyle = '#1f1f23';
+  ctx.lineWidth   = 1;
+  ctx.setLineDash([3, 5]);
+  for (let i = 0; i <= 3; i++) {
+    const y   = PAD.top + (PH * i / 3);
+    const val = maxVal - ((maxVal - minVal) * i / 3);
+    ctx.beginPath();
+    ctx.moveTo(PAD.left, y);
+    ctx.lineTo(W - PAD.right, y);
+    ctx.stroke();
+    ctx.fillStyle    = '#3f3f46';
+    ctx.font         = '9px SF Mono, Cascadia Code, monospace';
+    ctx.textAlign    = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(val.toFixed(0), PAD.left - 5, y);
+  }
+  ctx.setLineDash([]);
+
+  // Valid line
+  ctx.strokeStyle = '#34d399';
+  ctx.lineWidth   = 1.5;
+  ctx.lineJoin    = 'round';
+  let drawing = false;
+  for (let i = 0; i < n; i++) {
+    if (beats[i].valid) {
+      if (!drawing) { ctx.beginPath(); ctx.moveTo(toX(i), toY(beats[i].rr_ms)); drawing = true; }
+      else            ctx.lineTo(toX(i), toY(beats[i].rr_ms));
+    } else {
+      if (drawing) { ctx.stroke(); drawing = false; }
+    }
+  }
+  if (drawing) ctx.stroke();
+
+  // Dots per beat
+  for (let i = 0; i < n; i++) {
+    const b = beats[i];
+    const color = b.valid ? '#34d399' : b.device_filtered ? '#fbbf24' : '#f87171';
+    ctx.beginPath();
+    ctx.arc(toX(i), toY(b.rr_ms), 2, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+  }
+}
+
+async function openSessionDetail(id) {
+  elSessionDetailTitle.textContent = 'Carregando…';
+  elSessionDetailInfo.innerHTML    = '';
+  elModalSessionDetail.classList.remove('hidden');
+
+  try {
+    const res  = await fetch(`/api/session-detail?id=${id}`);
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error ?? res.statusText);
+
+    const { session, beats, metricas } = json;
+    const date = new Date(session.exportado_em).toLocaleString('pt-BR');
+
+    elSessionDetailTitle.textContent = `Sessão #${session.id} — ${session.voluntario}`;
+    elSessionDetailInfo.innerHTML = `
+      <span style="margin-right:20px;">Responsável: ${session.responsavel}</span>
+      <span style="margin-right:20px;">Sensor: ${session.sensor}</span>
+      <span style="margin-right:20px;">${date}</span>
+      <span>${beats.length} beats · ${metricas.length} métricas</span>
+    `;
+
+    requestAnimationFrame(() => {
+      renderSessionLineChart(
+        document.getElementById('session-rmssd-canvas'),
+        metricas.map(m => m.rmssd_ms),
+        '#22d3ee',
+        'rgba(34,211,238,0.18)'
+      );
+      renderSessionLineChart(
+        document.getElementById('session-hr-canvas'),
+        metricas.map(m => m.hr_bpm),
+        '#a78bfa',
+        'rgba(167,139,250,0.18)'
+      );
+      renderSessionRRChartStatic(
+        document.getElementById('session-rr-canvas'),
+        beats
+      );
+    });
+  } catch (err) {
+    elSessionDetailTitle.textContent = 'Erro';
+    elSessionDetailInfo.innerHTML = `<span style="color:#f87171;">${err.message}</span>`;
+  }
+}
 
 
 init();

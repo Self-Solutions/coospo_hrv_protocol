@@ -269,6 +269,31 @@
     </div>
 
 
+    <!-- ── Session Detail Modal ─────────────────────────────── -->
+    <div class="modal-overlay hidden" id="modal-session-detail" role="dialog" aria-modal="true">
+      <div class="modal" style="max-width:860px;width:95%;max-height:92vh;display:flex;flex-direction:column;">
+        <header class="modal-header">
+          <h2 id="session-detail-title">Sessão</h2>
+          <button class="modal-close" id="modal-session-detail-close" aria-label="Fechar modal">&#x2715;</button>
+        </header>
+        <div class="modal-body" style="overflow-y:auto;flex:1;">
+          <div id="session-detail-info" style="font-size:13px;color:#a1a1aa;margin-bottom:16px;"></div>
+          <div style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">RMSSD (ms)</div>
+          <div style="position:relative;height:160px;background:#111113;border-radius:6px;overflow:hidden;">
+            <canvas id="session-rmssd-canvas" style="display:block;"></canvas>
+          </div>
+          <div style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin:16px 0 4px;">HR (bpm)</div>
+          <div style="position:relative;height:140px;background:#111113;border-radius:6px;overflow:hidden;">
+            <canvas id="session-hr-canvas" style="display:block;"></canvas>
+          </div>
+          <div style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin:16px 0 4px;">Tachograma — RR (ms)</div>
+          <div style="position:relative;height:160px;background:#111113;border-radius:6px;overflow:hidden;">
+            <canvas id="session-rr-canvas" style="display:block;"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── Protocol Modal ────────────────────────────────────── -->
     <div class="modal-overlay hidden" id="modal-protocol" role="dialog" aria-modal="true" aria-labelledby="modal-protocol-title">
       <div class="modal">
