@@ -1738,59 +1738,5 @@ elModalListSessions.addEventListener('click', e => {
   if (e.target === elModalListSessions) elModalListSessions.classList.add('hidden');
 });
 
-// ═══════════════════════════════════════════════════════════════════════════════
-//  HARD INSERT TEST
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const elModalHardInsert      = document.getElementById('modal-hard-insert');
-const elBtnHardInsert        = document.getElementById('btn-hard-insert');
-const elModalHardInsertClose = document.getElementById('modal-hard-insert-close');
-const elHardInsertJson       = document.getElementById('hard-insert-json');
-const elBtnHardInsertSend    = document.getElementById('btn-hard-insert-send');
-const elHardInsertStatus     = document.getElementById('hard-insert-status');
-
-elBtnHardInsert.addEventListener('click', () => {
-  elModalHardInsert.classList.remove('hidden');
-});
-
-elModalHardInsertClose.addEventListener('click', () => {
-  elModalHardInsert.classList.add('hidden');
-});
-
-elModalHardInsert.addEventListener('click', e => {
-  if (e.target === elModalHardInsert) elModalHardInsert.classList.add('hidden');
-});
-
-elBtnHardInsertSend.addEventListener('click', async () => {
-  let data;
-  try {
-    data = JSON.parse(elHardInsertJson.value);
-  } catch {
-    elHardInsertStatus.style.color = '#f87171';
-    elHardInsertStatus.textContent = 'JSON inválido.';
-    return;
-  }
-
-  elBtnHardInsertSend.disabled = true;
-  elHardInsertStatus.style.color = '#71717a';
-  elHardInsertStatus.textContent = 'Enviando…';
-
-  try {
-    const res  = await fetch('/api/save-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error ?? res.statusText);
-    elHardInsertStatus.style.color = '#34d399';
-    elHardInsertStatus.textContent = 'Salvo! session_id: ' + json.session_id;
-  } catch (err) {
-    elHardInsertStatus.style.color = '#f87171';
-    elHardInsertStatus.textContent = 'Erro: ' + err.message;
-  } finally {
-    elBtnHardInsertSend.disabled = false;
-  }
-});
 
 init();
