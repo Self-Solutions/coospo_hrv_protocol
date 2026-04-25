@@ -1912,6 +1912,27 @@ function renderSessionRRChartStatic(canvas, beats) {
   }
 }
 
+let _sessionBeats    = [];
+let _sessionMetricas = [];
+let _sessionChartObserver = null;
+
+function renderSessionCharts() {
+  renderSessionLineChart(
+    document.getElementById('session-rmssd-canvas'),
+    _sessionMetricas.map(m => m.rmssd_ms),
+    '#22d3ee', 'rgba(34,211,238,0.18)'
+  );
+  renderSessionLineChart(
+    document.getElementById('session-hr-canvas'),
+    _sessionMetricas.map(m => m.hr_bpm),
+    '#a78bfa', 'rgba(167,139,250,0.18)'
+  );
+  renderSessionRRChartStatic(
+    document.getElementById('session-rr-canvas'),
+    _sessionBeats
+  );
+}
+
 async function openSessionDetail(id) {
   elSessionDetailTitle.textContent = 'Carregando…';
   elSessionDetailInfo.innerHTML    = '';
@@ -1923,8 +1944,10 @@ async function openSessionDetail(id) {
     if (!res.ok) throw new Error(json.error ?? res.statusText);
 
     const { session, beats, metricas } = json;
-    const date = new Date(session.exportado_em).toLocaleString('pt-BR');
+    _sessionBeats    = beats;
+    _sessionMetricas = metricas;
 
+    const date = new Date(session.exportado_em).toLocaleString('pt-BR');
     elSessionDetailTitle.textContent = `Sessão #${session.id} — ${session.voluntario}`;
 
     const item = (label, value) =>
@@ -1944,24 +1967,15 @@ async function openSessionDetail(id) {
       </div>
     `;
 
-    requestAnimationFrame(() => {
-      renderSessionLineChart(
-        document.getElementById('session-rmssd-canvas'),
-        metricas.map(m => m.rmssd_ms),
-        '#22d3ee',
-        'rgba(34,211,238,0.18)'
-      );
-      renderSessionLineChart(
-        document.getElementById('session-hr-canvas'),
-        metricas.map(m => m.hr_bpm),
-        '#a78bfa',
-        'rgba(167,139,250,0.18)'
-      );
-      renderSessionRRChartStatic(
-        document.getElementById('session-rr-canvas'),
-        beats
-      );
+    requestAnimationFrame(renderSessionCharts);
+
+    // Redesenha automaticamente ao girar ou redimensionar
+    if (_sessionChartObserver) _sessionChartObserver.disconnect();
+    _sessionChartObserver = new ResizeObserver(() => renderSessionCharts());
+    document.querySelectorAll('.session-chart-wrap').forEach(el => {
+      _sessionChartObserver.observe(el);
     });
+
   } catch (err) {
     elSessionDetailTitle.textContent = 'Erro';
     elSessionDetailInfo.innerHTML = `<span style="color:#f87171;">${err.message}</span>`;

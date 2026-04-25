@@ -727,6 +727,30 @@ h1 {
   display: none;
 }
 
+.session-chart-wrap {
+  position: relative;
+  height: 160px;
+  background: #111113;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.session-chart-wrap--sm {
+  height: 130px;
+}
+
+/* Landscape mobile */
+@media (max-height: 500px) {
+  .session-chart-wrap     { height: 110px; }
+  .session-chart-wrap--sm { height: 90px;  }
+}
+
+/* Tablet portrait */
+@media (min-width: 600px) and (max-width: 900px) {
+  .session-chart-wrap     { height: 180px; }
+  .session-chart-wrap--sm { height: 150px; }
+}
+
 .session-row:hover {
   background: rgba(34, 211, 238, 0.06);
 }
