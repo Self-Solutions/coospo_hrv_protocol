@@ -1212,6 +1212,25 @@ h1 {
   .card-value {
     font-size: 38px;
   }
+
+  /* ── Sessions list modal ── */
+  #list-sessions-content {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #list-sessions-content table {
+    min-width: 520px;
+  }
+
+  /* ── Session detail modal ── */
+  #session-detail-info {
+    gap: 12px 16px;
+  }
+
+  #session-detail-info > div {
+    min-width: 100px !important;
+  }
 }
 
 /* ── ≤ 480px : full single-column phone layout ───────────────────────────────── */
