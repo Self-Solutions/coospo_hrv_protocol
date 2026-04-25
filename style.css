@@ -727,6 +727,14 @@ h1 {
   display: none;
 }
 
+.session-row:hover {
+  background: rgba(34, 211, 238, 0.06);
+}
+
+.session-row:hover td {
+  color: #e4e4e7 !important;
+}
+
 /* ─────────────────────────────────────────────────────────────
    Modal box
 ───────────────────────────────────────────────────────────── */

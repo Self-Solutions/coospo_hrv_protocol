@@ -1680,7 +1680,7 @@ async function loadSessions() {
 
     const rows = json.sessions.map(s => {
       const date = new Date(s.exportado_em).toLocaleString('pt-BR');
-      return `<tr data-id="${s.id}" style="cursor:pointer;">
+      return `<tr class="session-row" data-id="${s.id}" style="cursor:pointer;transition:background 0.15s;">
         <td style="padding:6px 10px;color:#a1a1aa;">#${s.id}</td>
         <td style="padding:6px 10px;">${s.voluntario}</td>
         <td style="padding:6px 10px;">${s.responsavel}</td>
@@ -1693,6 +1693,7 @@ async function loadSessions() {
     }).join('');
 
     elListSessionsContent.innerHTML = `
+      <p style="font-size:11px;color:#52525b;margin:0 0 10px;text-align:right;">Clique em uma sessão para ver os gráficos</p>
       <table style="width:100%;border-collapse:collapse;">
         <thead>
           <tr style="color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:.05em;">
