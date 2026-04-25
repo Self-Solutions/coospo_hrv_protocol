@@ -13,7 +13,7 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { rows } = await sql`
+    const rows = await sql`
       SELECT id, voluntario, responsavel, sensor,
              exportado_em, intervalo_calculo_s,
              janela_batimentos, janela_maxage_s, filtro_anomalias_pct,
