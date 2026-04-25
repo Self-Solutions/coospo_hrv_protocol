@@ -1926,11 +1926,22 @@ async function openSessionDetail(id) {
     const date = new Date(session.exportado_em).toLocaleString('pt-BR');
 
     elSessionDetailTitle.textContent = `Sessão #${session.id} — ${session.voluntario}`;
+
+    const item = (label, value) =>
+      `<div style="min-width:140px;"><span style="color:#52525b;font-size:11px;text-transform:uppercase;letter-spacing:.04em;">${label}</span><br><span style="color:#e4e4e7;">${value}</span></div>`;
+
     elSessionDetailInfo.innerHTML = `
-      <span style="margin-right:20px;">Responsável: ${session.responsavel}</span>
-      <span style="margin-right:20px;">Sensor: ${session.sensor}</span>
-      <span style="margin-right:20px;">${date}</span>
-      <span>${beats.length} beats · ${metricas.length} métricas</span>
+      <div style="display:flex;flex-wrap:wrap;gap:16px 24px;padding:12px 0;border-bottom:1px solid #27272a;margin-bottom:16px;">
+        ${item('Responsável',       session.responsavel)}
+        ${item('Sensor',            session.sensor)}
+        ${item('Exportado em',      date)}
+        ${item('Beats',             beats.length)}
+        ${item('Métricas',          metricas.length)}
+        ${item('Janela batimentos', session.janela_batimentos + ' bat.')}
+        ${item('Janela max age',    session.janela_maxage_s + ' s')}
+        ${item('Filtro anomalias',  session.filtro_anomalias_pct + '%')}
+        ${item('Intervalo cálculo', session.intervalo_calculo_s + ' s')}
+      </div>
     `;
 
     requestAnimationFrame(() => {
