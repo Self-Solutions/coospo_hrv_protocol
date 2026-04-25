@@ -1951,10 +1951,10 @@ async function openSessionDetail(id) {
     elSessionDetailTitle.textContent = `Sessão #${session.id} — ${session.voluntario}`;
 
     const item = (label, value) =>
-      `<div style="min-width:140px;"><span style="color:#52525b;font-size:11px;text-transform:uppercase;letter-spacing:.04em;">${label}</span><br><span style="color:#e4e4e7;">${value}</span></div>`;
+      `<div style="flex:1 1 120px;min-width:100px;max-width:200px;"><span style="color:#52525b;font-size:11px;text-transform:uppercase;letter-spacing:.04em;">${label}</span><br><span style="color:#e4e4e7;">${value}</span></div>`;
 
     elSessionDetailInfo.innerHTML = `
-      <div style="display:flex;flex-wrap:wrap;gap:16px 24px;padding:12px 0;border-bottom:1px solid #27272a;margin-bottom:16px;">
+      <div style="display:flex;flex-wrap:wrap;gap:12px 16px;padding:12px 0;border-bottom:1px solid #27272a;margin-bottom:16px;overflow:hidden;">
         ${item('Responsável',       session.responsavel)}
         ${item('Sensor',            session.sensor)}
         ${item('Exportado em',      date)}
@@ -1967,7 +1967,8 @@ async function openSessionDetail(id) {
       </div>
     `;
 
-    requestAnimationFrame(renderSessionCharts);
+    // Aguarda o layout estabilizar antes de desenhar
+    setTimeout(renderSessionCharts, 80);
 
     // Redesenha automaticamente ao girar ou redimensionar
     if (_sessionChartObserver) _sessionChartObserver.disconnect();
