@@ -1353,7 +1353,7 @@ function buildExportJSON() {
     },
     beats: {
       headers: ['timestamp_ms', 'rr_ms', 'valid', 'device_filtered'],
-      rows: beats.map(b => [b.ts, b.rr, b.valid, b.deviceFiltered ?? false]),
+      rows: timelineBeats.map(b => [b.ts, b.rr, b.valid, b.deviceFiltered ?? false]),
     },
     metricas: {
       headers: ['timestamp_ms', 'hr_bpm', 'rmssd_ms', 'stress'],
