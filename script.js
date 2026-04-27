@@ -1770,8 +1770,11 @@ function renderSessionLineChart(canvas, values, timestamps, color, gradColorTop)
   const hi     = maxVal + pad;
   const range  = hi - lo;
 
-  const toX = i => PAD.left + (i / (n - 1)) * PW;
-  const toY = v => PAD.top  + PH - ((v - lo) / range) * PH;
+  const t0  = timestamps && timestamps.length >= 2 ? Number(timestamps[0])     : 0;
+  const tN  = timestamps && timestamps.length >= 2 ? Number(timestamps[n - 1]) : 1;
+  const dur = Math.max(1, tN - t0);
+  const toX = ts => PAD.left + ((Number(ts) - t0) / dur) * PW;
+  const toY = v  => PAD.top  + PH - ((v - lo) / range) * PH;
 
   // Grid
   ctx.strokeStyle = '#1f1f23';
@@ -1797,18 +1800,18 @@ function renderSessionLineChart(canvas, values, timestamps, color, gradColorTop)
   grad.addColorStop(0,   gradColorTop);
   grad.addColorStop(1,   'rgba(0,0,0,0)');
   ctx.beginPath();
-  ctx.moveTo(toX(0), toY(values[0]));
-  for (let i = 1; i < n; i++) ctx.lineTo(toX(i), toY(values[i]));
-  ctx.lineTo(toX(n - 1), PAD.top + PH);
-  ctx.lineTo(toX(0),     PAD.top + PH);
+  ctx.moveTo(toX(timestamps[0]), toY(values[0]));
+  for (let i = 1; i < n; i++) ctx.lineTo(toX(timestamps[i]), toY(values[i]));
+  ctx.lineTo(toX(timestamps[n - 1]), PAD.top + PH);
+  ctx.lineTo(toX(timestamps[0]),     PAD.top + PH);
   ctx.closePath();
   ctx.fillStyle = grad;
   ctx.fill();
 
   // Line
   ctx.beginPath();
-  ctx.moveTo(toX(0), toY(values[0]));
-  for (let i = 1; i < n; i++) ctx.lineTo(toX(i), toY(values[i]));
+  ctx.moveTo(toX(timestamps[0]), toY(values[0]));
+  for (let i = 1; i < n; i++) ctx.lineTo(toX(timestamps[i]), toY(values[i]));
   ctx.strokeStyle = color;
   ctx.lineWidth   = 1.8;
   ctx.lineJoin    = 'round';
@@ -1816,33 +1819,34 @@ function renderSessionLineChart(canvas, values, timestamps, color, gradColorTop)
 
   // Latest dot
   ctx.beginPath();
-  ctx.arc(toX(n - 1), toY(values[n - 1]), 3.5, 0, Math.PI * 2);
+  ctx.arc(toX(timestamps[n - 1]), toY(values[n - 1]), 3.5, 0, Math.PI * 2);
   ctx.fillStyle = color;
   ctx.fill();
+
   // X-axis time ticks (every 30 s)
-  if (timestamps && timestamps.length >= 2) {
+  {
     const TICK_MS    = 30_000;
-    const t0         = timestamps[0];
-    const tN         = timestamps[n - 1];
-    const toXt       = ts => PAD.left + ((ts - t0) / Math.max(1, tN - t0)) * PW;
     const fmtElapsed = s => {
       const m = Math.floor(s / 60), r = s % 60;
       return m === 0 ? `${s}s` : r === 0 ? `${m}m` : `${m}:${String(r).padStart(2, '0')}`;
     };
-    ctx.fillStyle    = '#52525b';
+    ctx.fillStyle    = '#71717a';
     ctx.font         = `9px "SF Mono", monospace`;
     ctx.textBaseline = 'alphabetic';
     ctx.setLineDash([]);
-    for (let elapsedMs = TICK_MS; elapsedMs <= tN - t0; elapsedMs += TICK_MS) {
-      const x        = toXt(t0 + elapsedMs);
-      const elapsedS = elapsedMs / 1000;
 
+    ctx.textAlign = 'left';
+    ctx.fillText('0s', PAD.left + 2, H - 4);
+
+    for (let elapsedMs = TICK_MS; elapsedMs <= dur; elapsedMs += TICK_MS) {
+      const x        = toX(t0 + elapsedMs);
+      const elapsedS = elapsedMs / 1000;
       ctx.textAlign  = 'center';
       ctx.fillText(fmtElapsed(elapsedS), x, H - 4);
       ctx.beginPath();
       ctx.moveTo(x, PAD.top + PH + 1);
       ctx.lineTo(x, PAD.top + PH + 5);
-      ctx.strokeStyle = '#2d2d33';
+      ctx.strokeStyle = '#3f3f46';
       ctx.lineWidth   = 1;
       ctx.stroke();
     }
@@ -1876,8 +1880,11 @@ function renderSessionRRChartStatic(canvas, beats) {
   const maxVal = Math.max(...rrs) + 20;
   const range  = maxVal - minVal || 1;
 
-  const toX = i => PAD.left + (i / (n - 1)) * PW;
-  const toY = v => PAD.top  + PH - ((v - minVal) / range) * PH;
+  const t0  = Number(beats[0].timestamp_ms);
+  const tN  = Number(beats[n - 1].timestamp_ms);
+  const dur = Math.max(1, tN - t0);
+  const toX = ts => PAD.left + ((Number(ts) - t0) / dur) * PW;
+  const toY = v  => PAD.top  + PH - ((v - minVal) / range) * PH;
 
   // Grid
   ctx.strokeStyle = '#1f1f23';
@@ -1905,8 +1912,8 @@ function renderSessionRRChartStatic(canvas, beats) {
   let drawing = false;
   for (let i = 0; i < n; i++) {
     if (beats[i].valid) {
-      if (!drawing) { ctx.beginPath(); ctx.moveTo(toX(i), toY(beats[i].rr_ms)); drawing = true; }
-      else            ctx.lineTo(toX(i), toY(beats[i].rr_ms));
+      if (!drawing) { ctx.beginPath(); ctx.moveTo(toX(beats[i].timestamp_ms), toY(beats[i].rr_ms)); drawing = true; }
+      else            ctx.lineTo(toX(beats[i].timestamp_ms), toY(beats[i].rr_ms));
     } else {
       if (drawing) { ctx.stroke(); drawing = false; }
     }
@@ -1918,34 +1925,35 @@ function renderSessionRRChartStatic(canvas, beats) {
     const b = beats[i];
     const color = b.valid ? '#34d399' : b.device_filtered ? '#fbbf24' : '#f87171';
     ctx.beginPath();
-    ctx.arc(toX(i), toY(b.rr_ms), 2, 0, Math.PI * 2);
+    ctx.arc(toX(b.timestamp_ms), toY(b.rr_ms), 2, 0, Math.PI * 2);
     ctx.fillStyle = color;
     ctx.fill();
   }
+
   // X-axis time ticks (every 30 s)
-  if (beats[0].timestamp_ms != null) {
+  {
     const TICK_MS    = 30_000;
-    const t0         = beats[0].timestamp_ms;
-    const tN         = beats[n - 1].timestamp_ms;
-    const toXt       = ts => PAD.left + ((ts - t0) / Math.max(1, tN - t0)) * PW;
     const fmtElapsed = s => {
       const m = Math.floor(s / 60), r = s % 60;
       return m === 0 ? `${s}s` : r === 0 ? `${m}m` : `${m}:${String(r).padStart(2, '0')}`;
     };
-    ctx.fillStyle    = '#52525b';
+    ctx.fillStyle    = '#71717a';
     ctx.font         = `9px "SF Mono", monospace`;
     ctx.textBaseline = 'alphabetic';
     ctx.setLineDash([]);
-    for (let elapsedMs = TICK_MS; elapsedMs <= tN - t0; elapsedMs += TICK_MS) {
-      const x        = toXt(t0 + elapsedMs);
-      const elapsedS = elapsedMs / 1000;
 
+    ctx.textAlign = 'left';
+    ctx.fillText('0s', PAD.left + 2, H - 4);
+
+    for (let elapsedMs = TICK_MS; elapsedMs <= dur; elapsedMs += TICK_MS) {
+      const x        = toX(t0 + elapsedMs);
+      const elapsedS = elapsedMs / 1000;
       ctx.textAlign  = 'center';
       ctx.fillText(fmtElapsed(elapsedS), x, H - 4);
       ctx.beginPath();
       ctx.moveTo(x, PAD.top + PH + 1);
       ctx.lineTo(x, PAD.top + PH + 5);
-      ctx.strokeStyle = '#2d2d33';
+      ctx.strokeStyle = '#3f3f46';
       ctx.lineWidth   = 1;
       ctx.stroke();
     }
