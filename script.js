@@ -1741,7 +1741,7 @@ elModalSessionDetail.addEventListener('click', e => {
 
 // ─── Session detail charts ────────────────────────────────────────────────────
 
-function renderSessionLineChart(canvas, values, color, gradColorTop) {
+function renderSessionLineChart(canvas, values, timestamps, color, gradColorTop) {
   const dpr = window.devicePixelRatio || 1;
   const container = canvas.parentElement;
   const W = container.clientWidth;
@@ -1758,7 +1758,7 @@ function renderSessionLineChart(canvas, values, color, gradColorTop) {
   ctx.fillStyle = '#111113';
   ctx.fillRect(0, 0, W, H);
 
-  const PAD = { top: 10, right: 12, bottom: 20, left: 48 };
+  const PAD = { top: 10, right: 12, bottom: 28, left: 48 };
   const PW  = W - PAD.left - PAD.right;
   const PH  = H - PAD.top  - PAD.bottom;
   const n   = values.length;
@@ -1819,6 +1819,34 @@ function renderSessionLineChart(canvas, values, color, gradColorTop) {
   ctx.arc(toX(n - 1), toY(values[n - 1]), 3.5, 0, Math.PI * 2);
   ctx.fillStyle = color;
   ctx.fill();
+  // X-axis time ticks (every 30 s)
+  if (timestamps && timestamps.length >= 2) {
+    const TICK_MS    = 30_000;
+    const t0         = timestamps[0];
+    const tN         = timestamps[n - 1];
+    const toXt       = ts => PAD.left + ((ts - t0) / Math.max(1, tN - t0)) * PW;
+    const fmtElapsed = s => {
+      const m = Math.floor(s / 60), r = s % 60;
+      return m === 0 ? `${s}s` : r === 0 ? `${m}m` : `${m}:${String(r).padStart(2, '0')}`;
+    };
+    ctx.fillStyle    = '#52525b';
+    ctx.font         = `9px "SF Mono", monospace`;
+    ctx.textBaseline = 'alphabetic';
+    ctx.setLineDash([]);
+    const firstTick = Math.ceil(t0 / TICK_MS) * TICK_MS;
+    for (let t = firstTick; t <= tN; t += TICK_MS) {
+      const x        = toXt(t);
+      const elapsedS = Math.round((t - t0) / 1000);
+      ctx.textAlign  = 'center';
+      ctx.fillText(fmtElapsed(elapsedS), x, H - 4);
+      ctx.beginPath();
+      ctx.moveTo(x, PAD.top + PH + 1);
+      ctx.lineTo(x, PAD.top + PH + 5);
+      ctx.strokeStyle = '#2d2d33';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+    }
+  }
 }
 
 function renderSessionRRChartStatic(canvas, beats) {
@@ -1838,7 +1866,7 @@ function renderSessionRRChartStatic(canvas, beats) {
   ctx.fillStyle = '#111113';
   ctx.fillRect(0, 0, W, H);
 
-  const PAD = { top: 10, right: 12, bottom: 20, left: 48 };
+  const PAD = { top: 10, right: 12, bottom: 28, left: 48 };
   const PW  = W - PAD.left - PAD.right;
   const PH  = H - PAD.top  - PAD.bottom;
   const n   = beats.length;
@@ -1894,6 +1922,34 @@ function renderSessionRRChartStatic(canvas, beats) {
     ctx.fillStyle = color;
     ctx.fill();
   }
+  // X-axis time ticks (every 30 s)
+  if (beats[0].timestamp_ms != null) {
+    const TICK_MS    = 30_000;
+    const t0         = beats[0].timestamp_ms;
+    const tN         = beats[n - 1].timestamp_ms;
+    const toXt       = ts => PAD.left + ((ts - t0) / Math.max(1, tN - t0)) * PW;
+    const fmtElapsed = s => {
+      const m = Math.floor(s / 60), r = s % 60;
+      return m === 0 ? `${s}s` : r === 0 ? `${m}m` : `${m}:${String(r).padStart(2, '0')}`;
+    };
+    ctx.fillStyle    = '#52525b';
+    ctx.font         = `9px "SF Mono", monospace`;
+    ctx.textBaseline = 'alphabetic';
+    ctx.setLineDash([]);
+    const firstTick = Math.ceil(t0 / TICK_MS) * TICK_MS;
+    for (let t = firstTick; t <= tN; t += TICK_MS) {
+      const x        = toXt(t);
+      const elapsedS = Math.round((t - t0) / 1000);
+      ctx.textAlign  = 'center';
+      ctx.fillText(fmtElapsed(elapsedS), x, H - 4);
+      ctx.beginPath();
+      ctx.moveTo(x, PAD.top + PH + 1);
+      ctx.lineTo(x, PAD.top + PH + 5);
+      ctx.strokeStyle = '#2d2d33';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+    }
+  }
 }
 
 let _sessionBeats    = [];
@@ -1913,11 +1969,13 @@ function renderSessionCharts() {
   renderSessionLineChart(
     document.getElementById('session-rmssd-canvas'),
     _sessionMetricas.map(m => m.rmssd_ms),
+    _sessionMetricas.map(m => m.timestamp_ms),
     '#22d3ee', 'rgba(34,211,238,0.18)'
   );
   renderSessionLineChart(
     document.getElementById('session-hr-canvas'),
     _sessionMetricas.map(m => m.hr_bpm),
+    _sessionMetricas.map(m => m.timestamp_ms),
     '#a78bfa', 'rgba(167,139,250,0.18)'
   );
   renderSessionRRChartStatic(
