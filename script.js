@@ -507,10 +507,10 @@ function renderChart() {
     ctx.textBaseline = 'alphabetic';
     ctx.setLineDash([]);
 
-    const firstTick = Math.ceil(t0 / TICK_MS) * TICK_MS;
-    for (let t = firstTick; t <= tN; t += TICK_MS) {
-      const x        = toXt(t);
-      const elapsedS = Math.round((t - t0) / 1000);
+    for (let elapsedMs = TICK_MS; elapsedMs <= tN - t0; elapsedMs += TICK_MS) {
+      const x        = toXt(t0 + elapsedMs);
+      const elapsedS = elapsedMs / 1000;
+
       ctx.textAlign  = 'center';
       ctx.fillText(fmtElapsed(elapsedS), x, H - 5);
       ctx.beginPath();
@@ -1118,10 +1118,10 @@ function renderRRChart() {
     rrCtx.textBaseline = 'alphabetic';
     rrCtx.setLineDash([]);
 
-    const firstTick = Math.ceil(t0 / TICK_MS) * TICK_MS;
-    for (let t = firstTick; t <= tN; t += TICK_MS) {
-      const x        = toXt(t);
-      const elapsedS = Math.round((t - t0) / 1000);
+    for (let elapsedMs = TICK_MS; elapsedMs <= tN - t0; elapsedMs += TICK_MS) {
+      const x        = toXt(t0 + elapsedMs);
+      const elapsedS = elapsedMs / 1000;
+
       rrCtx.textAlign   = 'center';
       rrCtx.fillText(fmtElapsed(elapsedS), x, H - 5);
       rrCtx.beginPath();
@@ -1833,10 +1833,10 @@ function renderSessionLineChart(canvas, values, timestamps, color, gradColorTop)
     ctx.font         = `9px "SF Mono", monospace`;
     ctx.textBaseline = 'alphabetic';
     ctx.setLineDash([]);
-    const firstTick = Math.ceil(t0 / TICK_MS) * TICK_MS;
-    for (let t = firstTick; t <= tN; t += TICK_MS) {
-      const x        = toXt(t);
-      const elapsedS = Math.round((t - t0) / 1000);
+    for (let elapsedMs = TICK_MS; elapsedMs <= tN - t0; elapsedMs += TICK_MS) {
+      const x        = toXt(t0 + elapsedMs);
+      const elapsedS = elapsedMs / 1000;
+
       ctx.textAlign  = 'center';
       ctx.fillText(fmtElapsed(elapsedS), x, H - 4);
       ctx.beginPath();
@@ -1936,10 +1936,10 @@ function renderSessionRRChartStatic(canvas, beats) {
     ctx.font         = `9px "SF Mono", monospace`;
     ctx.textBaseline = 'alphabetic';
     ctx.setLineDash([]);
-    const firstTick = Math.ceil(t0 / TICK_MS) * TICK_MS;
-    for (let t = firstTick; t <= tN; t += TICK_MS) {
-      const x        = toXt(t);
-      const elapsedS = Math.round((t - t0) / 1000);
+    for (let elapsedMs = TICK_MS; elapsedMs <= tN - t0; elapsedMs += TICK_MS) {
+      const x        = toXt(t0 + elapsedMs);
+      const elapsedS = elapsedMs / 1000;
+
       ctx.textAlign  = 'center';
       ctx.fillText(fmtElapsed(elapsedS), x, H - 4);
       ctx.beginPath();
