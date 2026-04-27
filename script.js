@@ -1,4 +1,4 @@
-/**
+﻿/**
  * HRV Monitor — Coospo HW9 (PPG — tempo real via Web Bluetooth)
  *
  * Timers
@@ -491,27 +491,35 @@ function renderChart() {
   ctx.fillText('ms', 0, 0);
   ctx.restore();
 
-  // ── X-axis time ticks ─────────────────────────────────────
-  ctx.fillStyle    = '#3f3f46';
-  ctx.font         = `9px "SF Mono", monospace`;
-  ctx.textBaseline = 'alphabetic';
-  ctx.setLineDash([]);
-  const tickStep = 20; // every 20 pts ≈ 60 s
-  for (let ti = 0; ti < n; ti += tickStep) {
-    const secsAgo = Math.round((rmssdHistory[n - 1].ts - rmssdHistory[ti].ts) / 1000);
-    const lbl = secsAgo === 0 ? 'agora'
-      : secsAgo < 60 ? `\u2212${secsAgo}s`
-      : `\u2212${Math.floor(secsAgo / 60)}m`;
-    ctx.textAlign = (ti === 0 && n > tickStep) ? 'left' : 'center';
-    ctx.fillText(lbl, toX(ti), H - 5);
-    ctx.beginPath();
-    ctx.moveTo(toX(ti), PAD.top + PH + 1);
-    ctx.lineTo(toX(ti), PAD.top + PH + 5);
-    ctx.strokeStyle = '#2d2d33';
-    ctx.lineWidth   = 1;
-    ctx.stroke();
-  }
-  if ((n - 1) % tickStep !== 0) {
+  // ── X-axis time ticks (every 30 s) ───────────────────────
+  {
+    const TICK_MS    = 30_000;
+    const t0         = rmssdHistory[0].ts;
+    const tN         = rmssdHistory[n - 1].ts;
+    const toXt       = ts => PAD.left + ((ts - t0) / Math.max(1, tN - t0)) * PW;
+    const fmtElapsed = s => {
+      const m = Math.floor(s / 60), r = s % 60;
+      return m === 0 ? `${s}s` : r === 0 ? `${m}m` : `${m}:${String(r).padStart(2, '0')}`;
+    };
+
+    ctx.fillStyle    = '#3f3f46';
+    ctx.font         = `9px "SF Mono", monospace`;
+    ctx.textBaseline = 'alphabetic';
+    ctx.setLineDash([]);
+
+    const firstTick = Math.ceil(t0 / TICK_MS) * TICK_MS;
+    for (let t = firstTick; t <= tN; t += TICK_MS) {
+      const x        = toXt(t);
+      const elapsedS = Math.round((t - t0) / 1000);
+      ctx.textAlign  = 'center';
+      ctx.fillText(fmtElapsed(elapsedS), x, H - 5);
+      ctx.beginPath();
+      ctx.moveTo(x, PAD.top + PH + 1);
+      ctx.lineTo(x, PAD.top + PH + 5);
+      ctx.strokeStyle = '#2d2d33';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+    }
     ctx.textAlign = 'right';
     ctx.fillText('agora', toX(n - 1), H - 5);
   }
@@ -1094,25 +1102,35 @@ function renderRRChart() {
     }
   }
 
-  // ── X-axis beat-count ticks ───────────────────────────────
-  rrCtx.fillStyle    = '#3f3f46';
-  rrCtx.font         = `9px "SF Mono", monospace`;
-  rrCtx.textBaseline = 'alphabetic';
-  rrCtx.setLineDash([]);
-  const bTickStep = 75; // every 75 beats ≈ 60 s at 75 bpm
-  for (let ti = 0; ti < n; ti += bTickStep) {
-    const beatsAgo = n - 1 - ti;
-    const lbl = beatsAgo === 0 ? 'agora' : `\u2212${beatsAgo}`;
-    rrCtx.textAlign = (ti === 0 && n > bTickStep) ? 'left' : 'center';
-    rrCtx.fillText(lbl, toX(ti), H - 5);
-    rrCtx.beginPath();
-    rrCtx.moveTo(toX(ti), PAD.top + PH + 1);
-    rrCtx.lineTo(toX(ti), PAD.top + PH + 5);
-    rrCtx.strokeStyle = '#2d2d33';
-    rrCtx.lineWidth   = 1;
-    rrCtx.stroke();
-  }
-  if ((n - 1) % bTickStep !== 0) {
+  // ── X-axis time ticks (every 30 s) ───────────────────────
+  {
+    const TICK_MS    = 30_000;
+    const t0         = rrHistory[0].ts;
+    const tN         = rrHistory[n - 1].ts;
+    const toXt       = ts => PAD.left + ((ts - t0) / Math.max(1, tN - t0)) * PW;
+    const fmtElapsed = s => {
+      const m = Math.floor(s / 60), r = s % 60;
+      return m === 0 ? `${s}s` : r === 0 ? `${m}m` : `${m}:${String(r).padStart(2, '0')}`;
+    };
+
+    rrCtx.fillStyle    = '#3f3f46';
+    rrCtx.font         = `9px "SF Mono", monospace`;
+    rrCtx.textBaseline = 'alphabetic';
+    rrCtx.setLineDash([]);
+
+    const firstTick = Math.ceil(t0 / TICK_MS) * TICK_MS;
+    for (let t = firstTick; t <= tN; t += TICK_MS) {
+      const x        = toXt(t);
+      const elapsedS = Math.round((t - t0) / 1000);
+      rrCtx.textAlign   = 'center';
+      rrCtx.fillText(fmtElapsed(elapsedS), x, H - 5);
+      rrCtx.beginPath();
+      rrCtx.moveTo(x, PAD.top + PH + 1);
+      rrCtx.lineTo(x, PAD.top + PH + 5);
+      rrCtx.strokeStyle = '#2d2d33';
+      rrCtx.lineWidth   = 1;
+      rrCtx.stroke();
+    }
     rrCtx.textAlign = 'right';
     rrCtx.fillText('agora', toX(n - 1), H - 5);
   }
