@@ -85,7 +85,7 @@ const elChartPlaceholder = document.getElementById('chart-placeholder');
 const elRRChartMeta      = document.getElementById('rr-chart-meta');
 const elRRChartPH        = document.getElementById('rr-chart-placeholder');
 const elAlterarBtn       = document.getElementById('btn-alterar');
-const elExportBtn        = document.getElementById('btn-export');
+const elModalSaving      = document.getElementById('modal-saving');
 const elIntervalInput    = document.getElementById('metrics-interval');
 const elIntervalDisplay  = document.getElementById('metrics-interval-display');
 const elConnectBtn       = document.getElementById('btn-connect');
@@ -631,6 +631,15 @@ async function connectBluetooth() {
   // Toggle: if already connected, disconnect
   if (isConnected) {
     disconnectBluetooth();
+    return;
+  }
+
+  const btAvailable = await navigator.bluetooth.getAvailability();
+  if (!btAvailable) {
+    alert(
+      'Bluetooth não encontrado neste dispositivo.\n' +
+      'Verifique se o Bluetooth está ligado e tente novamente.'
+    );
     return;
   }
 
@@ -1335,55 +1344,10 @@ function buildExportJSON() {
   };
 }
 
-async function exportData() {
-  if (beats.length === 0 && rmssdHistory.length === 0) {
-    alert('Nenhum dado para exportar. Conecte o dispositivo e aguarde alguns batimentos.');
-    return;
-  }
-
-  const now   = new Date();
-  const stamp = now.getFullYear() +
-    String(now.getMonth() + 1).padStart(2, '0') +
-    String(now.getDate()).padStart(2, '0') + '_' +
-    String(now.getHours()).padStart(2, '0') +
-    String(now.getMinutes()).padStart(2, '0') +
-    String(now.getSeconds()).padStart(2, '0');
-
-  const fileName = `hrv_${stamp}.json`;
-  const data     = buildExportJSON();
-  const content  = JSON.stringify(data, null, 2);
-  const blob     = new Blob([content], { type: 'application/json;charset=utf-8;' });
-
-  if (window.showSaveFilePicker) {
-    try {
-      const handle = await window.showSaveFilePicker({
-        suggestedName: fileName,
-        types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
-      });
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-    } catch (err) {
-      if (err.name !== 'AbortError') {
-        console.error('[Export]', err);
-        alert('Erro ao salvar ' + fileName + ':\n' + err.message);
-      }
-    }
-  } else {
-    // Fallback: trigger download via anchor element
-    const url = URL.createObjectURL(blob);
-    const a   = document.createElement('a');
-    a.href     = url;
-    a.download = fileName;
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  saveSessionToDatabase(data);
-}
-
-async function saveSessionToDatabase(data) {
-  console.log('[Export] processando envio para o banco...');
+async function saveSessionToDatabase() {
+  elModalSaving.classList.remove('hidden');
+  const data = buildExportJSON();
+  console.log('[Save] processando envio para o banco...');
   try {
     const res = await fetch('/api/save-session', {
       method: 'POST',
@@ -1392,9 +1356,11 @@ async function saveSessionToDatabase(data) {
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.error ?? res.statusText);
-    console.log('[Export] dado salvo no banco. session_id:', json.session_id);
+    console.log('[Save] dado salvo no banco. session_id:', json.session_id);
   } catch (err) {
-    console.error('[Export] erro no banco:', err.message);
+    console.error('[Save] erro no banco:', err.message);
+  } finally {
+    elModalSaving.classList.add('hidden');
   }
 }
 
@@ -1478,13 +1444,14 @@ function onProtocolPhaseChange(phaseIdx, durationMs) {
   protoCountdownTimer = null;
 
   if (phaseIdx === -1) {
-    // Protocol finished — mark all done, then fade out
+    // Protocol finished — mark all done, fade out, then save
     for (let i = 0; i < 8; i++) {
       const item = document.getElementById(`proto-phase-${i}`);
       item.classList.remove('proto-active');
       item.classList.add('proto-done');
     }
     setTimeout(() => elProtocolBar.classList.add('hidden'), 1500);
+    saveSessionToDatabase();
     return;
   }
 
@@ -1575,7 +1542,6 @@ function init() {
 
   // Buttons
   elConnectBtn.addEventListener('click', connectBluetooth);
-  elExportBtn.addEventListener('click', exportData);
 
   // Protocol modal
   elBtnProtocol.addEventListener('click', () => elModalProtocol.classList.remove('hidden'));

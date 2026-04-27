@@ -73,10 +73,6 @@
           </div>
         </div>
         <div class="config-actions">
-          <button class="btn-export" id="btn-export" title="Exportar registros como JSON">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Exportar CSV
-          </button>
           <button class="btn-alterar" id="btn-alterar">Alterar</button>
         </div>
         <div class="config-stats">
@@ -253,6 +249,16 @@
       <br />
       <span class="footer-copy">&copy; 2026 Self Solutions &mdash; Todos os direitos reservados</span>
     </footer>
+
+    <!-- ── Saving Modal ─────────────────────────────────────── -->
+    <div class="modal-overlay hidden" id="modal-saving" role="dialog" aria-modal="true" aria-live="assertive">
+      <div class="modal" style="max-width:340px;width:90%;text-align:center;">
+        <div class="modal-body" style="padding:32px 24px;display:flex;flex-direction:column;align-items:center;gap:16px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          <p style="margin:0;font-size:15px;color:#e4e4e7;font-weight:500;">Salvando protocolo…</p>
+        </div>
+      </div>
+    </div>
 
     <!-- ── List Sessions Modal ──────────────────────────────── -->
     <div class="modal-overlay hidden" id="modal-list-sessions" role="dialog" aria-modal="true">
