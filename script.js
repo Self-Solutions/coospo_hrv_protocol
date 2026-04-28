@@ -14,7 +14,7 @@
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 // ─── Constants ───────────────────────────────────────────────────────────────────────────
-let   METRICS_MS   = 3_000;    // metrics refresh period (user-adjustable 1–5 s)
+let   METRICS_MS   = 1_000;    // metrics refresh period (user-adjustable 1–5 s)
 const SQI_MS       = 30_000;   // SQI refresh period
 const CHART_POINTS = 1200;     // max RMSSD history kept (~1 h at 3 s/pt)
 
@@ -22,7 +22,7 @@ const CHART_POINTS = 1200;     // max RMSSD history kept (~1 h at 3 s/pt)
 const _wInit = parseInt(document.getElementById('window-size')?.value,    10);
 const _mInit = parseInt(document.getElementById('window-maxage')?.value,  10);
 const _fInit = parseInt(document.getElementById('anomaly-filter')?.value, 10);
-let windowBeats      = (!isNaN(_wInit) && _wInit >= 5   && _wInit <= 300) ? _wInit        : 30;
+let windowBeats      = (!isNaN(_wInit) && _wInit >= 5   && _wInit <= 300) ? _wInit        : 20;
 let windowMaxAgeMs   = (!isNaN(_mInit) && _mInit >= 10  && _mInit <= 600) ? _mInit * 1000 : 90_000;
 let anomalyThreshold = (!isNaN(_fInit) && _fInit >= 5   && _fInit <= 80)  ? _fInit / 100  : 0.20;
 
@@ -88,6 +88,8 @@ const elAlterarBtn       = document.getElementById('btn-alterar');
 const elModalSaving      = document.getElementById('modal-saving');
 const elIntervalInput    = document.getElementById('metrics-interval');
 const elIntervalDisplay  = document.getElementById('metrics-interval-display');
+const elIntervalDisplayRmssd  = document.getElementById('metrics-interval-display-rmssd');
+const elIntervalDisplayStress = document.getElementById('metrics-interval-display-stress');
 const elConnectBtn       = document.getElementById('btn-connect');
 const elConnectLabel = document.getElementById('btn-connect-label');
 const elBadgeMode   = document.getElementById('badge-mode');
@@ -583,7 +585,9 @@ function saveConfig() {
       clearInterval(_metricsTimer);
       _metricsTimer = setInterval(updateMetrics, METRICS_MS);
     }
-    if (elIntervalDisplay) elIntervalDisplay.textContent = iv;
+    if (elIntervalDisplay)       elIntervalDisplay.textContent       = iv;
+    if (elIntervalDisplayRmssd)  elIntervalDisplayRmssd.textContent  = iv;
+    if (elIntervalDisplayStress) elIntervalDisplayStress.textContent = iv;
   } else {
     elIntervalInput.value = METRICS_MS / 1000;
   }
@@ -1588,13 +1592,13 @@ function init() {
       bpm: Math.max(1, parseInt(elProtoBPM.value, 10) || 6),
       phaseDurations: [
         Math.max(0, parseInt(elProtoBaseline.value,  10) || 90),  // 0 Linha de Base
-        Math.max(0, parseInt(elProtoGuide1.value,    10) || 60),  // 1 Guia Resp. 1
+        Math.max(0, parseInt(elProtoGuide1.value,    10) || 90),  // 1 Guia Resp. 1
         2,                                                         // 2 Silêncio pré-estressor (fixo)
-        Math.max(0, parseInt(elProtoStressor.value,  10) || 5),   // 3 Estressor
+        Math.max(0, parseInt(elProtoStressor.value,  10) || 15),  // 3 Estressor
         2,                                                         // 4 Silêncio pós-estressor (fixo)
-        Math.max(0, parseInt(elProtoGuide2.value,    10) || 60),  // 5 Guia Resp. 2
+        Math.max(0, parseInt(elProtoGuide2.value,    10) || 90),  // 5 Guia Resp. 2
         Math.max(0, parseInt(elProtoMove.value,      10) || 10),  // 6 Movimentação
-        Math.max(0, parseInt(elProtoRest.value,      10) || 10),  // 7 Repouso
+        Math.max(0, parseInt(elProtoRest.value,      10) || 15),  // 7 Repouso
       ],
     };
     elModalProtocol.classList.add('hidden');

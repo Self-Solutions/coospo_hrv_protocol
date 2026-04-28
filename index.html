@@ -44,7 +44,7 @@
         <div class="config-item">
           <label for="window-size">Batimentos na Janela</label>
           <div class="input-row">
-            <input type="number" id="window-size" value="30" min="5" max="300" readonly />
+            <input type="number" id="window-size" value="20" min="5" max="300" readonly />
             <span class="unit">bat.</span>
           </div>
         </div>
@@ -68,7 +68,7 @@
         <div class="config-item">
           <label for="metrics-interval">Intervalo de Cálculo</label>
           <div class="input-row">
-            <input type="number" id="metrics-interval" value="3" min="1" max="5" readonly />
+            <input type="number" id="metrics-interval" value="1" min="1" max="5" readonly />
             <span class="unit">s</span>
           </div>
         </div>
@@ -158,7 +158,7 @@
             <span class="card-value" id="metric-hr">--</span>
             <span class="card-unit">bpm</span>
           </div>
-          <span class="card-hint">atualiza a cada <span id="metrics-interval-display">3</span> s</span>
+          <span class="card-hint">atualiza a cada <span id="metrics-interval-display">1</span> s</span>
         </article>
 
         <article class="card" id="card-rmssd">
@@ -167,7 +167,7 @@
             <span class="card-value" id="metric-rmssd">--</span>
             <span class="card-unit">ms</span>
           </div>
-          <span class="card-hint">atualiza a cada 3 s</span>
+          <span class="card-hint">atualiza a cada <span id="metrics-interval-display-rmssd">1</span> s</span>
         </article>
 
         <article class="card" id="card-stress">
@@ -179,7 +179,7 @@
           <div class="stress-track" aria-label="Barra de estresse">
             <div class="stress-fill" id="stress-fill"></div>
           </div>
-          <span class="card-hint">atualiza a cada 3 s</span>
+          <span class="card-hint">atualiza a cada <span id="metrics-interval-display-stress">1</span> s</span>
         </article>
 
         <article class="card card--sqi" id="card-sqi">
@@ -344,21 +344,21 @@
               <div class="modal-phase-item">
                 <label for="proto-guide1">2. Guia Respiratório 1</label>
                 <div class="modal-phase-input-wrap">
-                  <input type="number" id="proto-guide1" value="60" min="0" max="600" />
+                  <input type="number" id="proto-guide1" value="90" min="0" max="600" />
                   <span class="modal-phase-unit">s</span>
                 </div>
               </div>
               <div class="modal-phase-item">
                 <label for="proto-stressor">3. Estressor</label>
                 <div class="modal-phase-input-wrap">
-                  <input type="number" id="proto-stressor" value="5" min="0" max="600" />
+                  <input type="number" id="proto-stressor" value="15" min="0" max="600" />
                   <span class="modal-phase-unit">s</span>
                 </div>
               </div>
               <div class="modal-phase-item">
                 <label for="proto-guide2">4. Guia Respiratório 2</label>
                 <div class="modal-phase-input-wrap">
-                  <input type="number" id="proto-guide2" value="60" min="0" max="600" />
+                  <input type="number" id="proto-guide2" value="90" min="0" max="600" />
                   <span class="modal-phase-unit">s</span>
                 </div>
               </div>
@@ -372,7 +372,7 @@
               <div class="modal-phase-item">
                 <label for="proto-rest">6. Repouso</label>
                 <div class="modal-phase-input-wrap">
-                  <input type="number" id="proto-rest" value="10" min="0" max="600" />
+                  <input type="number" id="proto-rest" value="15" min="0" max="600" />
                   <span class="modal-phase-unit">s</span>
                 </div>
               </div>
