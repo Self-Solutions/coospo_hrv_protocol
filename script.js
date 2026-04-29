@@ -1680,7 +1680,8 @@ async function loadSessions() {
         <td style="padding:6px 10px;">${s.responsavel}</td>
         <td style="padding:6px 10px;color:#71717a;">${s.sensor}</td>
         <td style="padding:6px 10px;color:#71717a;">${date}</td>
-        <td style="padding:6px 10px;text-align:center;">
+        <td style="padding:6px 10px;text-align:center;white-space:nowrap;">
+          <button data-download-id="${s.id}" style="background:none;border:none;color:#71717a;cursor:pointer;font-size:14px;line-height:1;padding:2px 6px;" title="Baixar JSON">&#x2B07;</button>
           <button data-delete-id="${s.id}" style="background:none;border:none;color:#f87171;cursor:pointer;font-size:14px;line-height:1;padding:2px 6px;" title="Excluir sessão">&#x2715;</button>
         </td>
       </tr>`;
@@ -1706,8 +1707,45 @@ async function loadSessions() {
   }
 }
 
+async function downloadSessionJSON(id) {
+  const res  = await fetch(`/api/session-detail?id=${id}`);
+  const json = await res.json();
+  if (!res.ok) { alert('Erro ao baixar: ' + (json.error ?? res.statusText)); return; }
+
+  const { session, beats, metricas } = json;
+  const output = {
+    session: {
+      ...session,
+      linnha_de_base1:   parseInt(elProtoBaseline.value, 10),
+      guia_repiratorio1: parseInt(elProtoGuide1.value,   10),
+      estressor:         parseInt(elProtoStressor.value, 10),
+      guia_repiratorio2: parseInt(elProtoGuide2.value,   10),
+      movimentacao:      parseInt(elProtoMove.value,     10),
+      repouso:           parseInt(elProtoRest.value,     10),
+    },
+    metricas,
+    beats,
+  };
+
+  const blob = new Blob([JSON.stringify(output, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `sessao_${id}_${session.voluntario.replace(/\s+/g, '_')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // Único handler para delete e abertura de detalhe
 elListSessionsContent.addEventListener('click', async e => {
+  const downloadBtn = e.target.closest('[data-download-id]');
+  if (downloadBtn) {
+    downloadBtn.disabled = true;
+    await downloadSessionJSON(downloadBtn.dataset.downloadId);
+    downloadBtn.disabled = false;
+    return;
+  }
+
   const deleteBtn = e.target.closest('[data-delete-id]');
   if (deleteBtn) {
     const id = deleteBtn.dataset.deleteId;
