@@ -1594,10 +1594,10 @@ function init() {
         Math.max(0, parseInt(elProtoBaseline.value,  10) || 120), // 0 Linha de Base
         Math.max(0, parseInt(elProtoGuide1.value,    10) || 90),  // 1 Guia Resp. 1
         2,                                                         // 2 Silêncio pré-estressor (fixo)
-        Math.max(0, parseInt(elProtoStressor.value,  10) || 20),  // 3 Estressor
+        Math.max(0, parseInt(elProtoStressor.value,  10) || 40),  // 3 Estressor
         2,                                                         // 4 Silêncio pós-estressor (fixo)
         Math.max(0, parseInt(elProtoGuide2.value,    10) || 90),  // 5 Guia Resp. 2
-        Math.max(0, parseInt(elProtoMove.value,      10) || 10),  // 6 Movimentação
+        Math.max(0, parseInt(elProtoMove.value,      10) || 40),  // 6 Movimentação
         Math.max(0, parseInt(elProtoRest.value,      10) || 20),  // 7 Repouso
       ],
     };
