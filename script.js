@@ -1723,8 +1723,8 @@ async function downloadSessionJSON(id) {
       movimentacao:      parseInt(elProtoMove.value,     10),
       repouso:           parseInt(elProtoRest.value,     10),
     },
-    metricas,
-    beats,
+    metricas: metricas.map(m => ({ ...m, timestamp_ms: Number(m.timestamp_ms) })),
+    beats:    beats.map(b    => ({ ...b, timestamp_ms: Number(b.timestamp_ms) })),
   };
 
   const blob = new Blob([JSON.stringify(output, null, 2)], { type: 'application/json' });
