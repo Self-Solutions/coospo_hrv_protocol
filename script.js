@@ -1368,7 +1368,10 @@ function buildExportJSON() {
   };
 }
 
+let _saving = false;
 async function saveSessionToDatabase() {
+  if (_saving) return;
+  _saving = true;
   elModalSaving.classList.remove('hidden');
   const data = buildExportJSON();
   console.log('[Save] processando envio para o banco...');
@@ -1384,6 +1387,7 @@ async function saveSessionToDatabase() {
   } catch (err) {
     console.error('[Save] erro no banco:', err.message);
   } finally {
+    _saving = false;
     elModalSaving.classList.add('hidden');
   }
 }
