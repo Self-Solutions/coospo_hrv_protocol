@@ -63,6 +63,7 @@ let sqiCountdown = SQI_MS / 1000;   // seconds remaining
 // ─── Session timing ───────────────────────────────────────────────────────────
 let firstBeatTs     = null;   // epoch ms of first beat in current session
 let sessionStart    = null;   // epoch ms when BLE connected
+let sessionSensorName = null; // sensor name captured on BLE connect
 let sessionInterval = null;   // stopwatch setInterval handle
 let _metricsTimer   = null;   // metrics setInterval handle (restartable)
 
@@ -794,6 +795,7 @@ function setConnectedState(deviceName) {
   elStatusDot.classList.add('live');
   elStatusDot.title = 'Dispositivo conectado';
   elProtoSensor.value = deviceName || 'Coospo HW9';
+  sessionSensorName   = elProtoSensor.value;
   elProtoSensor.classList.add('sensor-connected');
   console.info('[BLE] Conectado:', deviceName);
 }
@@ -1346,7 +1348,7 @@ function buildExportJSON() {
     sessao: {
       voluntario:  elProtoVoluntario.value.trim(),
       responsavel: elProtoResponsavel.value.trim(),
-      sensor:      elProtoSensor.value,
+      sensor:      sessionSensorName || elProtoSensor.value,
     },
     config: {
       exportado_em:        now.toISOString(),
