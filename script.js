@@ -1750,7 +1750,12 @@ function renderSessionLineChart(canvas, values, timestamps, color, gradColorTop)
   const container = canvas.parentElement;
   const W = container.clientWidth;
   const H = container.clientHeight;
-  if (W === 0 || H === 0 || values.length < 2) return;
+  if (W === 0 || H === 0) return;
+  if (values.length < 2) {
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
 
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
@@ -1862,7 +1867,12 @@ function renderSessionRRChartStatic(canvas, beats) {
   const container = canvas.parentElement;
   const W = container.clientWidth;
   const H = container.clientHeight;
-  if (W === 0 || H === 0 || beats.length < 2) return;
+  if (W === 0 || H === 0) return;
+  if (beats.length < 2) {
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
 
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
