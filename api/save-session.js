@@ -72,11 +72,17 @@ module.exports = async function handler(req, res) {
       WITH new_session AS (
         INSERT INTO sessions (
           voluntario, responsavel, sensor, exportado_em,
-          janela_batimentos, janela_maxage_s, filtro_anomalias_pct, intervalo_calculo_s
+          janela_batimentos, janela_maxage_s, filtro_anomalias_pct, intervalo_calculo_s,
+          linha_de_base, guia_repiratorio1, estressor, guia_repiratorio2,
+          movimentacao, repouso, incursoes_por_minuto
         ) VALUES (
           ${sessao.voluntario}, ${sessao.responsavel}, ${sessao.sensor}, ${config.exportado_em},
           ${config.janela_batimentos}, ${config.janela_maxage_s},
-          ${config.filtro_anomalias_pct}, ${config.intervalo_calculo_s ?? 3}
+          ${config.filtro_anomalias_pct}, ${config.intervalo_calculo_s ?? 3},
+          ${config.linha_de_base ?? 120}, ${config.guia_repiratorio1 ?? 90},
+          ${config.estressor ?? 40}, ${config.guia_repiratorio2 ?? 90},
+          ${config.movimentacao ?? 40}, ${config.repouso ?? 20},
+          ${config.incursoes_por_minuto ?? 6}
         )
         RETURNING id
       ),

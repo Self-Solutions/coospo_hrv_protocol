@@ -1356,6 +1356,13 @@ function buildExportJSON() {
       janela_maxage_s:      windowMaxAgeMs / 1000,
       filtro_anomalias_pct: Math.round(anomalyThreshold * 100),
       intervalo_calculo_s:  METRICS_MS / 1000,
+      linha_de_base:        parseInt(elProtoBaseline.value, 10),
+      guia_repiratorio1:    parseInt(elProtoGuide1.value,   10),
+      estressor:            parseInt(elProtoStressor.value, 10),
+      guia_repiratorio2:    parseInt(elProtoGuide2.value,   10),
+      movimentacao:         parseInt(elProtoMove.value,     10),
+      repouso:              parseInt(elProtoRest.value,     10),
+      incursoes_por_minuto: parseInt(elProtoBPM.value,      10),
     },
     beats: {
       headers: ['timestamp_ms', 'rr_ms', 'valid', 'device_filtered'],
@@ -1714,15 +1721,7 @@ async function downloadSessionJSON(id) {
 
   const { session, beats, metricas } = json;
   const output = {
-    session: {
-      ...session,
-      linnha_de_base1:   parseInt(elProtoBaseline.value, 10),
-      guia_repiratorio1: parseInt(elProtoGuide1.value,   10),
-      estressor:         parseInt(elProtoStressor.value, 10),
-      guia_repiratorio2: parseInt(elProtoGuide2.value,   10),
-      movimentacao:      parseInt(elProtoMove.value,     10),
-      repouso:           parseInt(elProtoRest.value,     10),
-    },
+    session,
     metricas: metricas.map(m => ({ ...m, timestamp_ms: Number(m.timestamp_ms) })),
     beats:    beats.map(b    => ({ ...b, timestamp_ms: Number(b.timestamp_ms) })),
   };
